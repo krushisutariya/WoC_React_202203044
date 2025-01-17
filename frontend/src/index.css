@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Candara', sans-serif;
+    margin:0;
+padding: 0;
+box-sizing: border-box;
+background-color: #D8C4B6;
+}
+
+
+* {
+    font-family: 'Candara', sans-serif;
+}
+  
+  body {
+    font-family: 'Candara', sans-serif;
+  }
