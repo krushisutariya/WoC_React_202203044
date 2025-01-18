@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
-
+require('dotenv').config();
 
 
 mongoose.connect("mongodb://127.0.0.1:27017/Coders");
@@ -69,8 +69,8 @@ function sendEmail({ recipient_email, OTP }) {
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: 'krushisutr@gmail.com', // Use a secure email account (not hard-coded)
-        pass: 'ksps rigm etfb vdsi',  // Use app-specific password if using Gmail
+        user: process.env.GMAIL_USER, // Use a secure email account (not hard-coded)
+        pass: process.env.GMAIL_PASS,  // Use app-specific password if using Gmail
       },
     });
 
