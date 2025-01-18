@@ -6,7 +6,7 @@ import SignUp from "./Pages/SignUp.jsx";
 import Guest from "./Pages/Guest.jsx";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
-import ResetPassword from "./Pages/Otpverification.jsx";
+import ResetPassword from "./Pages/ResetPassword.jsx";
 import OtpVerification from "./Pages/Otpverification.jsx";
 import ForgotPassword from "./Pages/ForgotPassword.jsx";
 function App() {

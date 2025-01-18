@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose= require("mongoose");
 const cors=require("cors");
 const nodemailer = require("nodemailer");
+const bodyParser = require("body-parser");
 const CoderModel = require("./Models/Coders")
 const app=express();
 
@@ -10,6 +11,7 @@ const app=express();
 
 app.use(express.json());
 app.use(cors());
+app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 
 
@@ -61,93 +63,96 @@ app.post("/login",(req,res)=>{
 
 
 
+
 function sendEmail({ recipient_email, OTP }) {
   return new Promise((resolve, reject) => {
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
+        user: 'krushisutr@gmail.com', // Use a secure email account (not hard-coded)
+        pass: 'ksps rigm etfb vdsi',  // Use app-specific password if using Gmail
       },
-  });
+    });
 
-        console.log(user)
-        console.log(pass)
+    // Log that the transporter is set up (no sensitive information)
+    console.log("Email credentials are set up.");
+
     const mail_configs = {
-      from: process.env.MY_EMAIL,
+      from: 'krushisutr@gmail.com',
       to: recipient_email,
       subject: "CODE IDE PASSWORD RECOVERY",
-      html: `<!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>CodePen - OTP Email Template</title>
-  
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
-<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
-  <div style="margin:50px auto;width:70%;padding:20px 0">
-    <div style="border-bottom:1px solid #eee">
-      <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">Koding 101</a>
-    </div>
-    <p style="font-size:1.1em">Hi,</p>
-    <p>Thank you for choosing Koding 101. Use the following OTP to complete your Password Recovery Procedure. OTP is valid for 5 minutes</p>
-    <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">${OTP}</h2>
-    <p style="font-size:0.9em;">Regards,<br />Koding 101</p>
-    <hr style="border:none;border-top:1px solid #eee" />
-    <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">
-      <p>Koding 101 Inc</p>
-      <p>1600 Amphitheatre Parkway</p>
-      <p>California</p>
-    </div>
-  </div>
-</div>
-<!-- partial -->
-  
-</body>
-</html>`,
+      html: `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>OTP Email Template</title>
+        </head>
+        <body>
+        <div style="font-family: Helvetica, Arial, sans-serif; min-width:1000px; overflow:auto; line-height:2">
+          <div style="margin:50px auto; width:70%; padding:20px 0">
+            <div style="border-bottom:1px solid #eee">
+              <a href="" style="font-size:1.4em; color: #00466a; text-decoration:none; font-weight:600">Koding 101</a>
+            </div>
+            <p style="font-size:1.1em">Hi,</p>
+            <p>Thank you for choosing Koding 101. Use the following OTP to complete your Password Recovery Procedure. OTP is valid for 5 minutes</p>
+            <h2 style="background: #00466a; margin: 0 auto; width: max-content; padding: 0 10px; color: #fff; border-radius: 4px;">${OTP}</h2>
+            <p style="font-size:0.9em;">Regards,<br />Koding 101</p>
+            <hr style="border:none; border-top:1px solid #eee" />
+            <div style="float:right; padding:8px 0; color:#aaa; font-size:0.8em; line-height:1; font-weight:300">
+              <p>Koding 101 Inc</p>
+              <p>1600 Amphitheatre Parkway</p>
+              <p>California</p>
+            </div>
+          </div>
+        </div>
+        </body>
+        </html>`,
     };
-    transporter.sendEmail(mail_configs, function (error, info) {
+
+    // Send the email
+    transporter.sendMail(mail_configs, (error, info) => {
       if (error) {
-        console.log(error);
-        return reject({ message: `An error has occured` });
+        console.error("Error sending email:", error);
+        reject(new Error("Failed to send OTP email."));  // Reject promise on failure
+      } else {
+        console.log("Email sent: " + info.response);
+        resolve(info);  // Resolve promise on success
       }
-      return resolve({ message: "Email sent succesfuly" });
     });
   });
 }
 
-
 app.post("/send_recovery_email", (req, res) => {
-  console.log("Request received:", req.body); // Log incoming request
-  const {recipient_email,OTP}=req.body
-  sendEmail({recipient_email,OTP})
-    .then((response) => {
-      console.log("Email success response:", response);
-      res.send(response.message);
+  const { recipient_email, OTP } = req.body;
+
+  if (!recipient_email || !OTP) {
+    return res.status(400).json({ error: "Recipient email or OTP is missing" });
+  }
+
+  // Call sendEmail and handle the result with .then and .catch
+  sendEmail({ recipient_email, OTP })
+    .then(() => {
+      console.log(`Sending OTP: ${OTP} to ${recipient_email}`);
+      res.json({ message: "OTP sent successfully!" });
     })
     .catch((error) => {
-      console.error("Error in sending email:", error);
-      res.status(500).send(error.message);
+      console.error("Error in OTP email:", error);
+      res.status(500).json({ error: error.message });
     });
 });
 
 
 app.post("/resetpassword", async (req, res) => {
   const { email, newPassword } = req.body;
-
+ 
   try {
     // Add `await` to the database query to ensure it resolves properly
     const user = await CoderModel.findOne({ email });
-    
     if (!user) {
-      // Remove extra dot in `res.status.(404)` and ensure proper chaining
-      return res.status(404).json({ message: "User Not Found" });
+      return res.status(404).json({ message: "User not found" });
     }
-
+    
     // Update password
     user.password = newPassword;
 

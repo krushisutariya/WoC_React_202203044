@@ -7,8 +7,9 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [userLoggedIn, setuserLoggedIn] = useState(""); // Shared variable
   const [email,setEmail]=useState("");
+  const [otp, setOtp] = useState();
   return (
-    <AuthContext.Provider value={{ userLoggedIn, setuserLoggedIn,email,setEmail}}>
+    <AuthContext.Provider value={{ userLoggedIn, setuserLoggedIn,email,setEmail,otp, setOtp}}>
       {children}
     </AuthContext.Provider>
   );

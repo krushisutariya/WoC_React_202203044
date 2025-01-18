@@ -69,7 +69,7 @@ const Login = () => {
   return (
     <>
       {userLoggedIn && <Navigate to={"/guest"} replace={true} />}
-      <div className="flex flex-col">
+      <div className="flex flex-col bg-gray-100">
         <Navbar className="w-full" />
         <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#F5EFE7] animate-fade-in">
           <div className="w-full md:w-1/2 p-8 text-center animate-slide-in-left">
@@ -125,7 +125,7 @@ const Login = () => {
                 Remember Me
               </label>
 
-              <button className="flex items-center text-[#3E5879] mt-4 hover:underline" onClick={navigate("/forgotpassword")}>
+              <button className="flex items-center text-[#3E5879] mt-4 hover:underline" onClick={()=>navigate("/forgotpassword")}>
                 Forgot password?{" "}
               </button>
                </div>

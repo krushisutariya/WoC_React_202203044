@@ -92,7 +92,7 @@ const submitHandler = async (event) => {
 return (
   
   <>
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-gray-100">
      <Navbar/>
     <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#F5EFE7] animate-fade-in">
       {userLoggedIn && <Navigate to={"/guest"} replace={true} />}
