@@ -3,9 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { Button} from "@mui/material";
+import { Button } from "@mui/material";
 import "../index.css";
-import {useAuth} from "../Context/AuthContext"
+import { useAuth } from "../Context/AuthContext";
+import { MdOutlinePersonOutline } from "react-icons/md";
+import { FaRegPlayCircle } from "react-icons/fa";
+import { IoMdHome } from "react-icons/io";
 // Define the theme for Navbar (same as footer theme)
 const theme = createTheme({
   palette: {
@@ -30,34 +33,59 @@ const theme = createTheme({
 });
 
 const Navbar = () => {
-  
   const navigate = useNavigate();
-  const {userLoggedIn, setuserLoggedIn} = useAuth();
-  const handleLogout = () => {
-    setuserLoggedIn(false);  // This should reset the login state
-    toast.success("Logged out successfully!");
-    navigate("/");  // Redirect to the homepage or login page after logging out
-  };
+  const { userLoggedIn, setuserLoggedIn } = useAuth();
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme} >
       <div className="bg-[#213555] text-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           {/* Navigation Links */}
           <nav className="text-2xl">CODE IDE</nav>
 
-
           <div className="flex items-center space-x-4">
-            { 
-               userLoggedIn
-               ? 
-              (
+            {userLoggedIn ? (
               <>
+                 <Link to="/">
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#F5EFE7",
+                        color: "#213555",
+                        fontWeight: "bold",
+                      },
+                    }}
+                  >
+                    Home 
+                  </Button>
+                </Link>
+                
+
+                <Link to="/loggeduser">
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#F5EFE7",
+                        color: "#213555",
+                        fontWeight: "bold",
+                      },
+                    }}
+                  >
+                    CodeBoard
+                  </Button>
+                </Link>
+
+
                 
                 <Button
-                  onClick={()=>{
+                  onClick={() => {
                     setuserLoggedIn(false);
-                    navigate("/login")}}
+                    navigate("/login");
+                  }}
                   variant="contained"
                   color="error"
                   sx={{
@@ -71,6 +99,27 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                <Link to="/">
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#F5EFE7",
+                        color: "#213555",
+                        fontWeight: "bold",
+                      },
+                    }}
+                  >
+                    <div className="flex justify-between gap-2 items-center">
+
+                    <IoMdHome />
+                    Home
+                    </div>
+                  </Button>
+                </Link>
+
+
                 <Link to="/login">
                   <Button
                     variant="contained"
@@ -83,11 +132,16 @@ const Navbar = () => {
                       },
                     }}
                   >
+                    <div className="flex justify-between items-center gap-2">
+                    <MdOutlinePersonOutline/>
                     Login
+                    </div>
                   </Button>
                 </Link>
+
                 <Link to="/signup">
                   <Button
+                    className="border rounded"
                     variant="contained"
                     color="secondary"
                     sx={{
@@ -98,9 +152,14 @@ const Navbar = () => {
                       },
                     }}
                   >
+                    
+                    <div className="flex justify-between gap-2 items-center">
+                    < FaRegPlayCircle />
                     SignUp
+                    </div>
                   </Button>
                 </Link>
+
                 <Link to="/guest">
                   <Button
                     variant="contained"

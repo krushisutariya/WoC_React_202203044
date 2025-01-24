@@ -6,9 +6,10 @@ import SignUp from "./Pages/SignUp.jsx";
 import Guest from "./Pages/Guest.jsx";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
-import ResetPassword from "./Pages/ResetPassword.jsx";
-import OtpVerification from "./Pages/Otpverification.jsx";
-import ForgotPassword from "./Pages/ForgotPassword.jsx";
+import ResetPassword from "./Pages/ResetPassword/ResetPassword.jsx";
+import OtpVerification from "./Pages/ResetPassword/Otpverification.jsx";
+import ForgotPassword from "./Pages/ResetPassword/ForgotPassword.jsx";
+import LoggedUserCode from "./Pages/Code_Editor/LoggedUserCode.jsx";
 function App() {
 
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/resetpassword" element={<ResetPassword/>}/>
         <Route path="/otpverification" element={<OtpVerification/>}/>
         <Route path="/forgotpassword" element={<ForgotPassword/>}/>
+        <Route path="/loggeduser" element={<LoggedUserCode/>}/>
       </Routes>
     </div>
   );

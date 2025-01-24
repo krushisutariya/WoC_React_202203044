@@ -22,7 +22,6 @@ const SignUp = () => {
 
   const [isRegistering, setIsRegistering] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [rememberMe, setRememberMe] = useState(localStorage.getItem("email") ? true : false);
   const [showPassword, setShowPassword] = useState(false);
 
   const changeHandler = (event) => {
@@ -54,7 +53,7 @@ const submitHandler = async (event) => {
   }
 
   try {
-    const response = await axios.post("http://localhost:3001/register", {
+    const response = await axios.post("http://localhost:3001/api/register", {
       username: formData.username,
       email: formData.email,
       password: formData.password,
@@ -62,18 +61,22 @@ const submitHandler = async (event) => {
 
     // Handle success response
     console.log(response.data);
-    if (response.data.message === "User registered successfully.") {
+    if (response.data.message === "User registered successfully, and default file created.") {
+      console.log("HI");
       toast.success("Account has been created successfully!");
-      navigate("/guest");
+      navigate("/");
       setuserLoggedIn(true);
+    } else if (response.data.message === "User registered, but error creating default file.") {
+      setErrorMessage("User registered, but there was an issue creating the default file.");
+      toast.error("There was an issue creating your default file.");
     } else {
       setErrorMessage(response.data.message);
-      toast.error("User already registered with this email.") // Handle custom backend messages
+      toast.error("User already registered with this email."); // Handle custom backend messages
     }
   } catch (error) {
     console.error("Error while creating account:", error);
     
-    // Handle backend error responses
+   
     if (error.response) {
       setErrorMessage(error.response.data.message || "An error occurred.");
     } else {
@@ -88,14 +91,13 @@ const submitHandler = async (event) => {
 
 
 
-
 return (
   
   <>
     <div className="flex flex-col bg-gray-100">
      <Navbar/>
     <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#F5EFE7] animate-fade-in">
-      {userLoggedIn && <Navigate to={"/guest"} replace={true} />}
+      {userLoggedIn && <Navigate to={"/loggeduser"} replace={true} />}
       <div className="w-full md:w-1/2 p-8 text-center animate-slide-in-left">
         <h1 className="text-4xl font-bold text-[#213555] mb-4">Sign Up</h1>
         <div>
@@ -110,6 +112,7 @@ return (
                 name="username"
                 value={formData.username}
                 placeholder="Enter username"
+                autoComplete="off" 
                 onChange={changeHandler}
                 className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
               />
@@ -125,6 +128,7 @@ return (
                 name="email"
                 value={formData.email}
                 placeholder="Enter email address"
+                autoComplete="off" 
                 onChange={changeHandler}
                 className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
               />
@@ -155,15 +159,7 @@ return (
 
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
 
-            <label className="flex items-center text-[#3E5879] mt-4">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="mr-2"
-              />
-              Remember Me
-            </label>
+            
 
             <button
               type="submit"

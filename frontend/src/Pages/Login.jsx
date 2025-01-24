@@ -15,6 +15,7 @@ const Login = () => {
     password: "",
   });
 
+
   const { userLoggedIn, setuserLoggedIn } = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(
@@ -40,7 +41,7 @@ const Login = () => {
   const submitHandler = async (event) => {
     event.preventDefault();
     try {
-      const result = await axios.post("http://localhost:3001/login", {
+      const result = await axios.post("http://localhost:3001/api/login", {
         email: formData.email,
         password: formData.password,
       });
@@ -49,6 +50,7 @@ const Login = () => {
         toast.success("Welcome back");
         setuserLoggedIn(!userLoggedIn);
         console.log(userLoggedIn);
+        navigate("/loggeduser", { state: { email: formData.email } });
         if (rememberMe) {
           localStorage.setItem("email", formData.email);
         } else {
@@ -68,7 +70,7 @@ const Login = () => {
 
   return (
     <>
-      {userLoggedIn && <Navigate to={"/guest"} replace={true} />}
+      {userLoggedIn && <Navigate to={"/loggeduser"} replace={true} />}
       <div className="flex flex-col bg-gray-100">
         <Navbar className="w-full" />
         <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#F5EFE7] animate-fade-in">
@@ -86,6 +88,7 @@ const Login = () => {
                   value={formData.email}
                   placeholder="Enter email address"
                   onChange={changeHandler}
+                  autoComplete="off" 
                   className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
                 />
               </div>

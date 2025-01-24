@@ -10,18 +10,17 @@ import "aos/dist/aos.css"; // AOS CSS
 
 const Home = () => {
   useEffect(() => {
-    // Initialize AOS with 'once: false' to trigger animations every time the element comes into view
+
     AOS.init({
-      duration: 1000,   // Duration of the animation
-      offset: 200,      // Trigger animation after this distance from the top of the page
-      once: false,      // Make animations trigger every time the element enters the viewport
+      duration: 1000,  
+      offset: 200,     
+      once: false,      
     });
 
-    // Optionally, you can refresh AOS when elements are reloaded or scrolled.
     window.addEventListener('scroll', AOS.refresh);
     
     return () => {
-      window.removeEventListener('scroll', AOS.refresh); // Clean up event listener on unmount
+      window.removeEventListener('scroll', AOS.refresh); 
     };
   }, []);
 
@@ -29,7 +28,6 @@ const Home = () => {
     <div>
       <NavBar />
 
-      {/* Hero Section */}
       <div className="text-center py-16 bg-gray-100 shadow-lg" data-aos="fade-up">
         <div
           className="text-3xl font-bold mb-4"
@@ -47,10 +45,7 @@ const Home = () => {
         </div>
       </div>
 
-  
-       
 
-      {/* Features Section */}
       <div className="py-24">
         <div className="text-3xl font-bold mb-4 text-center text-[#3E5879]" data-aos="fade-up">
           Features
