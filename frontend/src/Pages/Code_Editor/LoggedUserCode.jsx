@@ -3,7 +3,11 @@ import AiChatBot from "../../Components/Ai_Chat_Boat";
 import ai from "../../assets/ai.png";
 import Navbar from "../../Components/NavBar";
 import FileStore from "./FileStore.jsx"
-const LoggedUserCode = ({email}) => {
+
+import { useAuth } from "../../Context/AuthContext.jsx";
+const LoggedUserCode = () => {
+
+  const { email } = useAuth();
   const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
@@ -30,7 +34,7 @@ const LoggedUserCode = ({email}) => {
      <Navbar/>
      
 
-     <FileStore props={email} className="bg-[#5D8AA8]"/>
+     <FileStore email={email} className="bg-[#5D8AA8]"/>
     
       <div className="flex flex-col justify-center  items-center col-span-3 bg-white p-4">
         <h1 className="text-3xl font-bold mb-4 fixed">Welcome to the LoggedUserCode Page</h1>

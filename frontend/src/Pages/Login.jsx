@@ -16,7 +16,7 @@ const Login = () => {
   });
 
 
-  const { userLoggedIn, setuserLoggedIn } = useAuth();
+  const { userLoggedIn, setuserLoggedIn ,setEmail} = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(
     localStorage.getItem("email") ? true : false
@@ -40,12 +40,14 @@ const Login = () => {
 
   const submitHandler = async (event) => {
     event.preventDefault();
+
     try {
       const result = await axios.post("http://localhost:3001/api/login", {
         email: formData.email,
         password: formData.password,
       });
       console.log(result.data);
+      setEmail((email)=>formData.email);
       if (result.data == "Success") {
         toast.success("Welcome back");
         setuserLoggedIn(!userLoggedIn);
@@ -70,7 +72,7 @@ const Login = () => {
 
   return (
     <>
-      {userLoggedIn && <Navigate to={"/loggeduser"} replace={true} />}
+      {userLoggedIn && <Navigate to={"/loggeduser"} replace={true}  />}
       <div className="flex flex-col bg-gray-100">
         <Navbar className="w-full" />
         <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#F5EFE7] animate-fade-in">

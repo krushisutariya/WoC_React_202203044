@@ -6,12 +6,21 @@ const nodemailer = require("nodemailer");
 
 
 const defaultFileStructure = {
-  name: "Default File", 
-  type: "file",       
-  language: "javascript", 
-  code: "// Default code", 
-  expanded: true, 
+  name: "Root",
+  type: "folder",
+  expanded: true,
+  children: [
+    {
+      name: "defaultFile.js",
+      type: "file",
+      language: "javascript",
+      code: "// Your code here...",
+      expanded: false,
+      children: [],
+    },
+  ],
 };
+
 
 
 
@@ -27,15 +36,8 @@ const register = (req, res) => {
       // Create the user first
       CoderModel.create(req.body)
         .then((newUser) => {
-          // Define the default file structure for the user
-          const defaultFileStructure = {
-            name: "Default File",  // Root-level file name
-            type: "file",          // File type
-            language: "javascript", // Language for the file
-            code: "// Default code", // Some default code inside the file
-            expanded: true, // Optionally, you can set this based on your UI behavior
-          };
-
+        
+         
           const userFile = new UserFile({
             userId: newUser._id,
             fileStructure: defaultFileStructure,
@@ -162,9 +164,32 @@ const resetPassword = async (req, res) => {
   }
 };
 
+
+const getUserIdByEmail = async (req, res) => {
+  try {
+    const { email } = req.query; // Get email from query parameters
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await CoderModel.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ userId: user._id });
+  } catch (error) {
+    console.error("Error fetching user ID:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   register,
   login,
   sendRecoveryEmail,
   resetPassword,
+  getUserIdByEmail,
 };
+

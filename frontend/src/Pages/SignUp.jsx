@@ -13,7 +13,7 @@ import {useAuth} from "../Context/AuthContext"
 import axios from "axios";
 const SignUp = () => {
   const navigate = useNavigate();
-  const {userLoggedIn, setuserLoggedIn} = useAuth();
+  const {userLoggedIn, setuserLoggedIn,setEmail} = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -43,7 +43,7 @@ const validatePassword = (password) => {
 const submitHandler = async (event) => {
   event.preventDefault();
   setErrorMessage(""); // Clear previous error messages
-
+  setEmail((email)=>formData.email);
   // Validate password
   if (!validatePassword(formData.password)) {
     setErrorMessage(
