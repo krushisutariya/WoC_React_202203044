@@ -61,8 +61,7 @@ const submitHandler = async (event) => {
 
     // Handle success response
     console.log(response.data);
-    if (response.data.message === "User registered successfully, and default file created.") {
-      console.log("HI");
+    if (response.data.message === "User registered successfully, and default file structure created.") {
       toast.success("Account has been created successfully!");
       navigate("/");
       setuserLoggedIn(true);

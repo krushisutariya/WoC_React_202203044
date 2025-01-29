@@ -7,64 +7,64 @@ const nodemailer = require("nodemailer");
 
 const defaultFileStructure = {
   name: "Root",
-  type: "folder",
-  expanded: true,
+  isFolder: true,
   children: [
     {
       name: "defaultFile.js",
-      type: "file",
-      language: "javascript",
-      code: "// Your code here...",
-      expanded: false,
-      children: [],
+      isFolder: false,
+      content: "// Your code here...",
     },
   ],
 };
 
-
-
-
-const register = (req, res) => {
+const register = async (req, res) => {
   const { username, email, password } = req.body;
 
-  CoderModel.findOne({ email: email })
-    .then((existingUser) => {
-      if (existingUser) {
-        return res.json({ message: "User already registered with this email." });
-      }
-      
-      // Create the user first
-      CoderModel.create(req.body)
-        .then((newUser) => {
-        
-         
-          const userFile = new UserFile({
-            userId: newUser._id,
-            fileStructure: defaultFileStructure,
-          });
+  try {
+    // Check if a user with this email already exists
+    const existingUser = await CoderModel.findOne({ email });
+    console.log(existingUser);
+    if (existingUser) {
+     
+      return res.json({ message: "User already registered with this email." });
+    }
 
-          userFile.save()
-            .then(() => {
-              res.json({
-                message: "User registered successfully, and default file created.",
-                user: newUser
-              });
-            })
-            .catch((err) => {
-              
-              res.json({
-                message: "User registered, but error creating default file.",
-                error: err
-              });
-            });
+    // Create a new user
+    const newUser = await CoderModel.create({ username, email, password });
 
-        })
-        .catch((err) => res.json({ message: "Error creating user.", error: err }));
-    })
-    .catch((err) => res.json({ message: "Error checking for existing user.", error: err }));
+    // Create the root folder for the user
+    const rootFolder = new UserFile({
+      name: defaultFileStructure.name,
+      isFolder: defaultFileStructure.isFolder,
+      owner: newUser._id,
+      parent: null, // Root folder has no parent
+    });
+
+    await rootFolder.save();
+
+    // Add the default file to the root folder
+    const defaultFile = new UserFile({
+      name: defaultFileStructure.children[0].name,
+      isFolder: defaultFileStructure.children[0].isFolder,
+      content: defaultFileStructure.children[0].content,
+      owner: newUser._id,
+      parent: rootFolder._id, // Set the root folder as the parent
+    });
+
+    await defaultFile.save();
+
+    // Add the default file's reference to the root folder's `children` array
+    rootFolder.children.push(defaultFile._id);
+    await rootFolder.save();
+
+    res.json({
+      message: "User registered successfully, and default file structure created.",
+      user: newUser,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "An error occurred.", error: err });
+  }
 };
-
-
 
 const login = (req, res) => {
   const { email, password } = req.body;

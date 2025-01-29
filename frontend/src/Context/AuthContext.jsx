@@ -13,6 +13,13 @@ export const AuthProvider = ({ children }) => {
   const [email, setEmail] = useState(() => localStorage.getItem("email") || "");
   const [otp, setOtp] = useState(() => localStorage.getItem("otp") || "");
 
+  
+
+    const [rootId, setrootId] = useState(null);
+    const [defaultId, setdefaultId]=useState(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(false);
+    const [openfile,setOpenFile]=useState(null);
+  
   // Persist `userLoggedIn`, `email`, and `otp` to localStorage on change
   useEffect(() => {
     localStorage.setItem("userLoggedIn", userLoggedIn);
@@ -28,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ userLoggedIn, setuserLoggedIn, email, setEmail, otp, setOtp }}
+      value={{ userLoggedIn, setuserLoggedIn, email, setEmail, otp, setOtp ,rootId, setrootId,refreshTrigger, setRefreshTrigger,defaultId, setdefaultId,openfile,setOpenFile}}
     >
       {children}
     </AuthContext.Provider>

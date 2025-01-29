@@ -1,335 +1,256 @@
 import React, { useState, useEffect } from "react";
-import { TiEdit } from "react-icons/ti";
-import { RiDeleteBinLine } from "react-icons/ri";
-import { FaPlus } from "react-icons/fa";
-import { MdExpandMore, MdChevronRight } from "react-icons/md";
 import axios from "axios";
+import TreeNode from "./TreeNode";
+import { useAuth } from "../../Context/AuthContext";
+import { toast } from "react-toastify";
 
 const FileStore = ({ email }) => {
-  const [data, setData] = useState([]);
+  const [fileStructure, setFileStructure] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [uid, setUid] = useState(null);
+  
+  
+  const {rootId, setrootId,refreshTrigger, setRefreshTrigger,defaultId, setdefaultId}= useAuth();
+
+
+  // Modal related state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newItemType, setNewItemType] = useState(null);
-  const [newItemPath, setNewItemPath] = useState(["root"]);
   const [newItemName, setNewItemName] = useState("");
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editItemPath, setEditItemPath] = useState([]);
-  const [editItemName, setEditItemName] = useState("");
+  const [newItemType, setNewItemType] = useState("file"); // 'file' or 'folder'
+  const [newItemParentId, setNewItemParentId] = useState(null); // Parent ID for the new file/folder
+
+
+
+
+  
+  
+
+ 
+  const buildTree = (data) => {
+    const map = new Map();
+
+    // Create a map for quick lookup
+    data.forEach((item) => {
+      // Initialize children as an empty array
+      map.set(item._id.toString(), { ...item, children: [] });
+    });
+
+    let root = null;
+
+    data.forEach((item) => {
+      if (item.parent) {
+        // Add the current item to its parent's children array
+        const parent = map.get(item.parent.toString());
+        if (parent) {
+          parent.children.push(map.get(item._id.toString()));
+        }
+      } else {
+        // No parent means it's the root
+        root = map.get(item._id.toString());
+      }
+    });
+
+    return root;
+  };
+
+  // Fetch User ID and File Structure on component load
+  const [updateTrigger, setUpdateTrigger] = useState(0); // Trigger for re-fetching
 
   useEffect(() => {
     const fetchUserIdAndFileStructure = async () => {
       try {
         const userResponse = await axios.get(
           "http://localhost:3001/api/getUserIdByEmail",
-          { params: { email } }
+          {
+            params: { email },
+          }
         );
         const userId = userResponse.data.userId;
+        setUid(userId);
 
         const fileResponse = await axios.get(
           "http://localhost:3001/file/getFileStructure",
-          { params: { userId } }
+          {
+            params: { userId },
+          }
         );
 
-        let fileStructure = fileResponse.data;
+        const tree = buildTree(fileResponse.data);
+        setFileStructure(tree);
 
-        setData(fileStructure);
-        console.log(fileStructure);
-        renderTree([fileStructure]);
+        if (tree && Array.isArray(tree.children)) {
+          setrootId(tree._id);
+         setdefaultId(tree.children.find(
+          (item) => item.name === "default.js"
+        )._id)
+        } else {
+          console.error(
+            "fileStructure or its children property is not available or is not an array"
+          );
+        }
+
+        console.log(tree);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
+      setLoading(false);
     };
 
     fetchUserIdAndFileStructure();
-  }, [email]);
+  }, [email,refreshTrigger]); // ✅ Trigger refetch when email or updateTrigger changes
 
-  const toggleFolder = (path) => {
-    const update = (node, path) => {
-      if (path.length === 1) {
-        node[path[0]].expanded = !node[path[0]].expanded;
-      } else {
-        update(node[path[0]].children, path.slice(1));
-      }
-    };
-
-    setData((prevData) => {
-      const newData = JSON.parse(JSON.stringify(prevData));
-      update(newData, path);
-      return newData;
+  const onDeleteItem = (id) => {
+  
+    setFileStructure((prevData) => {
+      const removeItem = (node) => {
+        if (!node) return null;
+        if (node._id === id) return null; // Remove the node
+        return {
+          ...node,
+          children: node.children?.map(removeItem).filter(Boolean), // Recursively update children
+        };
+      };
+      setRefreshTrigger(prev => !prev);
+      return removeItem(prevData);
     });
   };
 
-  const openModal = (path, type) => {
-    console.log(path);
-    setNewItemPath(path);
-    setNewItemType(type);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setNewItemName("");
-    setIsModalOpen(false);
-  };
-
-
-
-
-
-
-
   const addItem = async () => {
-    if (!newItemName.trim()) return alert("Name cannot be empty!");
-    
-    
-    const newItem =
-      newItemType === "folder"
-        ? { name: newItemName, type: "folder", expanded: true, children: [] }
-        : { name: newItemName, type: "file", language: "javascript" };
   
-    try {
+    if (!newItemName.trim()) return toast.error("Name cannot be empty!");
+    
+    const userResponse = await axios.get(
+      "http://localhost:3001/api/getUserIdByEmail",
+      {
+        params: { email },
+      }
+    );
+    const userId = userResponse.data.userId;
 
-      const userResponse = await axios.get(
-        "http://localhost:3001/api/getUserIdByEmail",
-        { params: { email } }
+    const newItem = {
+      name: newItemName,
+      isFolder: newItemType === "folder",
+      parent: newItemParentId,
+      content: newItemType === "file" ? "hi" : null, // Set content to null for folders
+      owner: userId,
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3001/file/addFileOrFolder",
+        newItem
       );
-      const userId = userResponse.data.userId;
-      console.log(userId);
-      console.log(newItemName);
-      console.log(newItemPath);
-      await axios.post("http://localhost:3001/file/addFileOrFolder", {
-        userId,
-        path: newItemPath,
-        newItem,
-      });
-  
-      setData((prevData) => {
-        const newData = JSON.parse(JSON.stringify(prevData));
-        const update = (node, path) => {
-          if (path.length === 0) {
-            node.push(newItem);
+      const newEntry = response.data.newEntry;
+
+      setFileStructure((prevData) => {
+        const newData = { ...prevData }; // Create a shallow copy of the previous data
+
+        const addNewItem = (node, parentId) => {
+          if (parentId === null || node._id === parentId) {
+            node.children = node.children || []; // Initialize children if undefined
+            node.children.push(newEntry);
           } else {
-            update(node[path[0]].children, path.slice(1));
+            node.children.forEach((child) => addNewItem(child, parentId));
           }
         };
-  
-        update(newData, newItemPath);
+
+        // Start adding the new entry from the root
+        addNewItem(newData, newItemParentId);
+
         return newData;
       });
+      setRefreshTrigger(prev => !prev);
       closeModal();
     } catch (error) {
       console.error("Error adding item:", error);
     }
   };
-  
 
-  const deleteItem = async (path) => {
-    const isDefaultFile =
-      path.length === 1 && data[path[2]].name === "default.txt";
-    if (isDefaultFile) {
-      return alert("You cannot delete the default file!");
-    }
-
-    if (!window.confirm("Are you sure you want to delete this item?")) return;
-
-    try {
-      await axios.post("http://localhost:3001/file/deleteNode", { path });
-
-      const update = (node, path) => {
-        if (path.length === 1) {
-          node.splice(path[0], 1);
-        } else {
-          update(node[path[0]].children, path.slice(1));
-        }
-      };
-
-      setData((prevData) => {
-        const newData = JSON.parse(JSON.stringify(prevData));
-        update(newData, path);
-        return newData;
-      });
-    } catch (error) {
-      console.error("Error deleting item:", error);
-    }
+  // Close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setNewItemName("");
+    setNewItemType("file");
+    setNewItemParentId(null);
   };
 
-  const openEditModal = (path, name) => {
-    setEditItemPath(path);
-    setEditItemName(name);
-    setIsEditModalOpen(true);
+  const handleAddNewItem = (parentId) => {
+    setNewItemParentId(parentId);
+    setIsModalOpen(true);
   };
 
-  const closeEditModal = () => {
-    setEditItemName("");
-    setIsEditModalOpen(false);
-  };
+  if (loading) return <div className="text-center text-xl">Loading...</div>;
 
-  const editItem = async () => {
-    if (!editItemName.trim()) return alert("Name cannot be empty!");
-
-    try {
-      await axios.post("http://localhost:3001/file/editNode", {
-        path: editItemPath,
-        newName: editItemName,
-      });
-
-      setData((prevData) => {
-        const newData = JSON.parse(JSON.stringify(prevData));
-        const update = (node, path) => {
-          if (path.length === 1) {
-            node[path[0]].name = editItemName;
-          } else {
-            update(node[path[0]].children, path.slice(1));
-          }
-        };
-
-        update(newData, editItemPath);
-        return newData;
-      });
-      closeEditModal();
-    } catch (error) {
-      console.error("Error editing item:", error);
-    }
-  };
-
-  const renderTree = (nodes, path = []) => {
-    return nodes.map((node, index) => {
-      const currentPath = [...path, index];
-      if (node.type === "folder") {
-        return (
-          
-            <div key={index} className="ml-4 bg-[#2c3968]">
-              <div
-                className="flex items-center justify-between p-2 cursor-pointer hover:bg-[#5072A7]"
-                
-              >
-                <div className="flex items-center gap-2">
-                  {node.expanded ? (
-                    <MdExpandMore onClick={() => toggleFolder(currentPath)} className="text-lg text-black" />
-                  ) : (
-                    <MdChevronRight onClick={() => toggleFolder(currentPath)} className="text-lg" />
-                  )}
-                  <div className="text-lg font-semibold">{node.name}</div>
-                </div>
-                <div className="flex gap-2">
-                  <TiEdit
-                    className="cursor-pointer text-yellow-500"
-                    onClick={() => openEditModal(currentPath, node.name)}
-                  />
-                  <RiDeleteBinLine
-                    className="cursor-pointer text-red-500"
-                    onClick={() => deleteItem(currentPath)}
-                  />
-                  <FaPlus
-                    className="cursor-pointer text-green-500"
-                    onClick={() => openModal(currentPath, "folder")}
-                  />
-                  <FaPlus
-                    className="cursor-pointer text-blue-500"
-                    onClick={() => openModal(currentPath, "file")}
-                  />
-                </div>
-              </div>
-              {node.expanded && (
-                <div className="ml-4">
-                  {renderTree(node.children, currentPath)}
-                </div>
-              )}
-            </div>
-        
-        );
-      } else {
-        return (
-          <div>
-            <div className="flex">
-
-            </div>
-            <div key={index} className="ml-4">
-              <div className="flex justify-between items-center p-2">
-                {node.name}
-                <div className="flex gap-2">
-                  <TiEdit
-                    className="cursor-pointer text-yellow-500"
-                    onClick={() => openEditModal(currentPath, node.name)}
-                  />
-                  {node.name != "Default File" && (
-                    <RiDeleteBinLine
-                      className="cursor-pointer text-red-500"
-                      onClick={() => deleteItem(currentPath)}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-    });
-  };
+  if (!fileStructure) {
+    return (
+      <div className="text-center text-xl">No file structure available.</div>
+    );
+  }
 
   return (
-    <div className="h-screen w-80 bg-gray-50 shadow-lg">
-      <h1 className="text-2xl font-bold p-4 border-b">File Explorer</h1>
-      <div className="h-full overflow-y-auto p-4">
-        {renderTree(Array.isArray(data) ? data : [data])}
-      </div>
-
+    <div className="container mx-auto p-4">
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="p-6 rounded-md shadow-lg">
-            <h2 className="text-xl font-semibold mb-4 text-black">
-              Create {newItemType === "folder" ? "Folder" : "File"}
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-xl font-semibold mb-4">
+              Create New File/Folder
             </h2>
-            <input
-              type="text"
-              placeholder="Enter name"
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              className="w-full p-2 border rounded-md mb-4"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-gray-300 rounded-md"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={addItem}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md"
-              >
-                Create
-              </button>
-            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                addItem();
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium">Name</label>
+                <input
+                  type="text"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Type</label>
+                <select
+                  value={newItemType}
+                  onChange={(e) => setNewItemType(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                >
+                  <option value="file">File</option>
+                  <option value="folder">Folder</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                >
+                  Create
+                </button>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
-
-      {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-md shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">Edit Item</h2>
-            <input
-              type="text"
-              placeholder="Enter new name"
-              value={editItemName}
-              onChange={(e) => setEditItemName(e.target.value)}
-              className="w-full p-2 border rounded-md mb-4"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={closeEditModal}
-                className="px-4 py-2 bg-gray-300 rounded-md"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={editItem}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="text-3xl font-bold mb-4">File Store</div>
+      {fileStructure &&rootId&&defaultId&& (
+        <TreeNode
+          node={fileStructure}
+          onAddNewItem={handleAddNewItem}
+          onDeleteItem={onDeleteItem}
+          userId={uid}
+          setFileStructure={setFileStructure}
+        />
       )}
     </div>
   );

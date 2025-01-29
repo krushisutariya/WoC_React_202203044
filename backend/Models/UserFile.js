@@ -1,19 +1,40 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const fileSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  type: { type: String, required: true, enum: ["folder", "file"] },
-  language: { type: String, required: function () { return this.type === "file"; } },
-  code: { type: String, required: function () { return this.type === "file"; } },
-  expanded: { type: Boolean, default: false },
-  children: { type: [this], default: [] },
+const fileStructureSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  isFolder: {
+    type: Boolean,
+    required: true,
+  },
+  parent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserFile',
+    default: null, // Root folder will have null as parent
+  },
+  children: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'UserFile',
+    },
+  ],
+  content: {
+    type: String,
+    default: null, // Applicable only for files, not folders
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'coders', // Links the structure to a specific coder (user)
+    required: true,
+  },
+  deleted: {
+    type: Boolean,
+    default: false, // For soft delete functionality
+  },
 });
 
-const userFileSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Coders" },
-  fileStructure: fileSchema,
-});
-
-const UserFile = mongoose.model("UserFile", userFileSchema);
+const UserFile = mongoose.model('UserFile', fileStructureSchema);
 
 module.exports = UserFile;

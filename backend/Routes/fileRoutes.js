@@ -7,6 +7,6 @@ const router = express.Router();
 router.post("/addFileOrFolder", fileController.addFileOrFolder);
 router.get("/getFileStructure", fileController.getFileStructure);
 router.put("/updateFileContent", fileController.updateFileContent);
-router.delete("/deleteNode", fileController.deleteNode);
-
+router.get("/getContent",fileController.getContent)
+router.delete('/deleteFileOrFolder/:id', fileController.deleteFileOrFolder);
 module.exports = router;
