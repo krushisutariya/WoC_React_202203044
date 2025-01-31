@@ -1,5 +1,7 @@
 const UserFile = require("../Models/UserFile");
 const mongoose = require("mongoose");
+const { exec } = require("child_process");
+const fs = require("fs");
 
 
 const getFileStructure = async (req, res) => {
@@ -110,7 +112,7 @@ const getContent = async (req, res) => {
       return res.status(404).json({ error: "File not found" });
     }
 
-    res.json({ content: file.content });
+    res.json({ name: file.name, content: file.content });
   } catch (error) {
     console.error("Error fetching file:", error);
     res.status(500).json({ error: "Server error" });
@@ -139,6 +141,98 @@ const deleteFileOrFolder = async (req, res) => {
 
 
 
+const runCode = async (req, res) => {
+  const { language, content } = req.body;
+
+  if (!language || !content) {
+    return res.status(400).json({ message: "Language and code are required." });
+  }
+
+  const extensions = {
+    javascript: "js",
+    c: "c",
+    cpp: "cpp",
+    java: "java",
+    typescript: "ts",
+    python: "py",
+    go: "go",
+    kotlin: "kt",
+    csharp: "cs",
+    perl: "pl",
+    php: "php",
+    ruby: "rb",
+    rust: "rs",
+    swift: "swift",
+    shell: "sh",
+  };
+
+  if (!(language in extensions)) {
+    return res.status(400).json({ message: "Unsupported language" });
+  }
+
+  const extension = extensions[language];
+  const fileName = `Temp.${extension}`;
+  fs.writeFileSync(fileName, content);
+
+  let command;
+
+  switch (language) {
+    case "javascript":
+      command = `node ${fileName}`;
+      break;
+    case "typescript":
+      command = `ts-node ${fileName}`;
+      break;
+    case "python":
+      command = `python ${fileName}`;
+      break;
+    case "java":
+      command = `javac ${fileName} && java Temp`;
+      break;
+    case "c":
+      command = `gcc ${fileName} -o Temp && ./Temp`;
+      break;
+    case "cpp":
+      command = `g++ ${fileName} -o Temp && ./Temp`;
+      break;
+    case "go":
+      command = `go run ${fileName}`;
+      break;
+    case "kotlin":
+      command = `kotlinc ${fileName} -include-runtime -d Temp.jar && java -jar Temp.jar`;
+      break;
+    case "csharp":
+      command = `mcs ${fileName} -out:Temp.exe && mono Temp.exe`;
+      break;
+    case "perl":
+      command = `perl ${fileName}`;
+      break;
+    case "php":
+      command = `php ${fileName}`;
+      break;
+    case "ruby":
+      command = `ruby ${fileName}`;
+      break;
+    case "rust":
+      command = `rustc ${fileName} -o Temp && ./Temp`;
+      break;
+    case "swift":
+      command = `swift ${fileName}`;
+      break;
+    case "shell":
+      command = `bash ${fileName}`;
+      break;
+  }
+
+  exec(command, (err, stdout, stderr) => {
+    fs.unlinkSync(fileName); // Delete temp file after execution
+    if (err) {
+      return res.status(500).json({ output: stderr });
+    }
+    res.json({ output: stdout });
+  });
+};
+
 
 
 
@@ -147,5 +241,6 @@ module.exports = {
   getFileStructure,
   updateFileContent,
   deleteFileOrFolder,
-  getContent
+  getContent,
+  runCode 
 };

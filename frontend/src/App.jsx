@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./Pages/Home.jsx";
 import Login from "./Pages/Login.jsx";
 import SignUp from "./Pages/SignUp.jsx";
-import Guest from "./Pages/Guest.jsx";
+import Guest from "./Pages/Code_Editor/Guest.jsx";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
 import ResetPassword from "./Pages/ResetPassword/ResetPassword.jsx";

@@ -9,4 +9,6 @@ router.get("/getFileStructure", fileController.getFileStructure);
 router.put("/updateFileContent", fileController.updateFileContent);
 router.get("/getContent",fileController.getContent)
 router.delete('/deleteFileOrFolder/:id', fileController.deleteFileOrFolder);
+router.post("/runCode", fileController.runCode);
+
 module.exports = router;

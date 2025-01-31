@@ -5,6 +5,7 @@ import Navbar from "../../Components/NavBar";
 import FileStore from "./FileStore.jsx";
 import OpenFile from "./OpenFile.jsx";
 import { useAuth } from "../../Context/AuthContext.jsx";
+import Guest from "./Guest.jsx";
 const LoggedUserCode = () => {
   const { email } = useAuth();
   const [showChat, setShowChat] = useState(false);
@@ -48,7 +49,7 @@ const LoggedUserCode = () => {
 
         {/* OpenFile takes 2/3 of the width */}
         <div className="col-span-2 p-4">
-          <OpenFile id={openfile} />
+          <Guest id={openfile} />
         </div>
       </div>
 
