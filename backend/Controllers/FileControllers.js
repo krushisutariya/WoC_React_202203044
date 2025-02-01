@@ -1,7 +1,9 @@
 const UserFile = require("../Models/UserFile");
 const mongoose = require("mongoose");
+const fetch = require("node-fetch");
 const { exec } = require("child_process");
 const fs = require("fs");
+const { stdin } = require("process");
 
 
 const getFileStructure = async (req, res) => {
@@ -141,97 +143,73 @@ const deleteFileOrFolder = async (req, res) => {
 
 
 
-const runCode = async (req, res) => {
-  const { language, content } = req.body;
 
-  if (!language || !content) {
-    return res.status(400).json({ message: "Language and code are required." });
-  }
 
-  const extensions = {
-    javascript: "js",
-    c: "c",
-    cpp: "cpp",
-    java: "java",
-    typescript: "ts",
-    python: "py",
-    go: "go",
-    kotlin: "kt",
-    csharp: "cs",
-    perl: "pl",
-    php: "php",
-    ruby: "rb",
-    rust: "rs",
-    swift: "swift",
-    shell: "sh",
-  };
+const executeCode=async(req,res) =>{
+  try {
 
-  if (!(language in extensions)) {
-    return res.status(400).json({ message: "Unsupported language" });
-  }
-
-  const extension = extensions[language];
-  const fileName = `Temp.${extension}`;
-  fs.writeFileSync(fileName, content);
-
-  let command;
-
-  switch (language) {
-    case "javascript":
-      command = `node ${fileName}`;
-      break;
-    case "typescript":
-      command = `ts-node ${fileName}`;
-      break;
-    case "python":
-      command = `python ${fileName}`;
-      break;
-    case "java":
-      command = `javac ${fileName} && java Temp`;
-      break;
-    case "c":
-      command = `gcc ${fileName} -o Temp && ./Temp`;
-      break;
-    case "cpp":
-      command = `g++ ${fileName} -o Temp && ./Temp`;
-      break;
-    case "go":
-      command = `go run ${fileName}`;
-      break;
-    case "kotlin":
-      command = `kotlinc ${fileName} -include-runtime -d Temp.jar && java -jar Temp.jar`;
-      break;
-    case "csharp":
-      command = `mcs ${fileName} -out:Temp.exe && mono Temp.exe`;
-      break;
-    case "perl":
-      command = `perl ${fileName}`;
-      break;
-    case "php":
-      command = `php ${fileName}`;
-      break;
-    case "ruby":
-      command = `ruby ${fileName}`;
-      break;
-    case "rust":
-      command = `rustc ${fileName} -o Temp && ./Temp`;
-      break;
-    case "swift":
-      command = `swift ${fileName}`;
-      break;
-    case "shell":
-      command = `bash ${fileName}`;
-      break;
-  }
-
-  exec(command, (err, stdout, stderr) => {
-    fs.unlinkSync(fileName); // Delete temp file after execution
-    if (err) {
-      return res.status(500).json({ output: stderr });
+    const sourceData=req.body;
+    if(!sourceData?.language || !sourceData?.version){
+      return res.status(400).json({ error: "Fileds are required!" });
     }
-    res.json({ output: stdout });
-  });
-};
+  
+    const {
+      language = "javascript",
+      version = "18.15.0",
+      code = "",
+      input = ""
+    } = sourceData;
+  
+    console.log("this is backenf");
+    console.log(sourceData);
+    if (!code.trim()) {
+      return res.status(400).json({ error: "Source code cannot be empty." });
+    }
+    
+    const data={
+      language,
+      version,
+      files:[
+        {
+          content: code,
+        }
+      ],
+      stdin: input,
+    };
+  
+    const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({
+        error: "Failed to execute code.",
+        details: errorText,
+      });
+    }
+
+    // Parse and return the response
+    const results = await response.json();
+    if (results && results.run) {
+      return res.status(200).json(results.run);
+    } else {
+      return res.status(500).json({ error: "Unexpected API response format." });
+    }
+     
+  }
+  catch(err)
+  {
+    return res.status(500).json({
+      error: "Internal Server Error",
+      details: err.message || "An unexpected error occured."
+    })
+  }
+  
+  
+}
 
 
 
@@ -242,5 +220,5 @@ module.exports = {
   updateFileContent,
   deleteFileOrFolder,
   getContent,
-  runCode 
+  executeCode,
 };

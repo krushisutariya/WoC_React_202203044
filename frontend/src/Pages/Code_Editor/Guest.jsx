@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import * as monaco from "monaco-editor";
 import { THEMES, registerThemes } from "./themes";
 import { CiImport, CiExport } from "react-icons/ci";
+import { TbTextWrapColumn } from "react-icons/tb";
+import { IoTerminalOutline } from "react-icons/io5";
 
 const Guest = ({ id }) => {
   const themeOptions = Object.keys(THEMES);
@@ -21,9 +23,14 @@ const Guest = ({ id }) => {
   const [name, setName] = useState(null);
   const [language, setLanguage] = useState("javascript");
   const [theme, setTheme] = useState("my-dark-theme");
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(
+    "Write your input here or you can drop file here"
+  );
   const [output, setOutput] = useState("This is your output text.");
+  const [dragOver, setDragOver] = useState(false);
   const { userLoggedIn } = useAuth();
+
+  const API_KEY = import.meta.env.VITE_JUDGE0_API_KEY;
 
   useEffect(() => {
     if (!id && !userLoggedIn) {
@@ -54,10 +61,7 @@ const Guest = ({ id }) => {
       };
 
       fetchFileContent();
-    }
-    else 
-    {
-      
+    } else {
     }
 
     const savedChatVisibility = localStorage.getItem("showChat");
@@ -75,6 +79,31 @@ const Guest = ({ id }) => {
 
   const openFilePicker = () => {
     document.getElementById("fileInput").click();
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setDragOver(false);
+
+    const file = event.dataTransfer.files[0];
+    if (file) readFile(file);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragOver(false);
+  };
+
+  const readFile = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setInput(e.target.result);
+    };
+    reader.readAsText(file);
   };
 
   const handleDownload = () => {
@@ -210,183 +239,226 @@ const Guest = ({ id }) => {
     document.body.removeChild(a);
   };
 
+  const languageversion = {
+    javascript: { version: "18.15.0" },
+    c: { version: "10.2.0" },
+    cpp: { version: "10.2.0" },
+    java: { version: "15.0.2" },
+    typescript: { version: "5.0.3" },
+    python: { version: "3.10.0" },
+    go: { version: "1.16.2" },
+    kotlin: { version: "1.8.20" },
+    csharp: { version: "6.12.0" },
+    perl: { version: "5.36.0" },
+    php: { version: "8.2.3" },
+    ruby: { version: "3.0.1" },
+    rust: { version: "1.68.2" },
+    swift: { version: "5.3.3" },
+    shell: { version: "5.0.0" },
+  };
 
-
-  const handleRunCode = async () => {
+  const runcode = async () => {
     try {
+      console.log("this is frontend");
       console.log(language);
+      console.log(languageversion[language]?.version);
       console.log(content);
-      const response = await axios.post("http://localhost:3001/file/runCode", {
-        language,
-        content,
-      });
-      
-      console.log(response.data.output);
+      console.log(input);
 
-      setOutput(response.data.output);
+      const response = await fetch("http://localhost:3001/file/executeCode", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          language,
+          version: languageversion[language]?.version, // Sending only the version string
+          code: content, // Code from your editor
+          input, // If you have input for the program
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+      if (data.error) {
+        setOutput(data.error);
+      } else {
+        setOutput(data.output);
+      }
     } catch (error) {
-      console.log(error);
-      setOutput("Error running code");
+      setOutput("Error executing code.");
     }
   };
 
-
-
   return (
-    <div className="flex flex-col h-screen">
-      {/* Fixed Navbar */}
+    <div className="grid grid-rows-[12%_11%_88%] bg-[#33006F] ">
+
       {!userLoggedIn && (
-        <div className="top-0 left-0 w-full z-50">
+        <div className="top-0 left-0 w-full z-50 mb-2">
           <Navbar />
         </div>
       )}
 
-      {/* Upper Section - Full Width Editor */}
-  <div className="flex items-center justify-between px-6 py-3 bg-gray-100 shadow-md">
-  {/* Left Section - User Name */}
-  <div className="text-lg font-semibold text-gray-800">
-    {userLoggedIn && <span>{name}</span>}
-  </div>
+   
+      <div className="flex flex-wrap items-center justify-between px-6 bg-gray-900 shadow-md gap-4 ">
+        {/* Left Section - User Name & Language Selector */}
+        <div className="flex items-center p-3 gap-4 rounded-lg">
+          {/* Terminal Icon */}
+          <div className="text-xl md:text-2xl text-white border-gray-700 bg-gray-800 focus:border-white focus:outline-none">
+            <IoTerminalOutline className="text-4xl" />
+          </div>
 
-  {/* Center Section - Language & Theme Selectors */}
-  <div className="flex items-center gap-4">
-    {/* Language Dropdown */}
-    <select
-      className="p-2 border rounded-md bg-white shadow-sm focus:outline-none"
-      value={language}
-      onChange={handleLanguageChange}
-    >
-      <option value="javascript">JavaScript</option>
-      <option value="c">C</option>
-      <option value="cpp">C++</option>
-      <option value="java">Java</option>
-      <option value="typescript">TypeScript</option>
-      <option value="python">Python</option>
-      <option value="go">Go</option>
-      <option value="kotlin">Kotlin</option>
-      <option value="csharp">C#</option>
-      <option value="perl">Perl</option>
-      <option value="php">PHP</option>
-      <option value="ruby">Ruby</option>
-      <option value="rust">Rust</option>
-      <option value="swift">Swift</option>
-      <option value="shell">Bash</option>
-    </select>
+          {/* User Name Display */}
+          {userLoggedIn && (
+            <span className="text-sm md:text-base lg:text-lg font-semibold bg-gray-800 text-white">
+              {name}
+            </span>
+          )}
 
-    {/* Theme Dropdown */}
-    <select
-      className="p-2 border rounded-md bg-white shadow-sm focus:outline-none"
-      value={theme}
-      onChange={handleThemeChange}
-    >
-      {Object.keys(THEMES).map((themeKey) => (
-        <option key={themeKey} value={themeKey}>
-          {themeKey.replace("-", " ")}
-        </option>
-      ))}
-    </select>
-  </div>
+          {/* Language Selection Dropdown */}
+          <select className=" md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none">
+            {Object.entries(languageversion).map(([key, { version }]) => (
+              <option key={key} value={key}>
+                {key.charAt(0).toUpperCase() + key.slice(1)} ({version})
+              </option>
+            ))}
+          </select>
+        </div>
 
-  {/* Right Section - Buttons */}
-  <div className="flex items-center gap-3">
-    {/* Run Button */}
-    <button   onClick={handleRunCode} className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 transition">
-      <FaRegPlayCircle className="text-lg" />
-      <span>Run</span>
-    </button>
+        {/* Center Section - Run & Save Buttons */}
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            onClick={runcode}
+            className="flex items-center gap-2  bg-gray-700 text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-blue-600 transition"
+          >
+            <FaRegPlayCircle className="text-lg sm:text-xl" />
+            <span>Run</span>
+          </button>
 
-    {/* Save Button (Visible only if logged in) */}
-    {userLoggedIn && (
-      <button
-        onClick={handleSave}
-        className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition"
-      >
-        <BiSave className="text-lg" />
-        <span>Save</span>
-      </button>
-    )}
+          {userLoggedIn && (
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-lg shadow-md hover:bg-blue-600 transition"
+            >
+              <BiSave className="text-lg sm:text-xl" />
+              <span>Save</span>
+            </button>
+          )}
+        </div>
 
-    {/* Code File Upload */}
-    <input
-      type="file"
-      accept=".txt,.js,.ts,.json,.html,.css"
-      onChange={handleCodeFileUpload}
-      className="hidden"
-      id="file-upload"
-    />
-    <label
-      htmlFor="file-upload"
-      className="cursor-pointer bg-gray-200 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-300 transition"
-    >
-      Import Code
-    </label>
+        {/* Right Section - Theme & Enable Wrapping */}
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Theme Dropdown */}
+          <select
+            className="md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
+            value={theme}
+            onChange={handleThemeChange}
+          >
+            {Object.keys(THEMES).map((themeKey) => (
+              <option key={themeKey} value={themeKey}>
+                {themeKey.replace("-", " ")}
+              </option>
+            ))}
+          </select>
 
-    {/* Export Code Button */}
-    <button
-      onClick={handleCodeFileDownload}
-      className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition"
-    >
-      Export Code
-    </button>
-  </div>
-</div>
-
-      
-     
-
-
-      <div className="h-screen grid grid-rows-[60%_40%]">
-      {/* Upper Section - Code Editor (75%) */}
-      <div className="p-4">
-        <Editor
-          height="100%"
-          width="100%"
-          language={language}
-          theme={theme}
-          value={content}
-          onChange={(newValue) => setContent(newValue)}
-        />
+          {/* Enable Wrapping Button */}
+          <button className="flex items-center gap-2 p-2  sm:text-base md:text-lg border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none">
+            <TbTextWrapColumn className="text-lg sm:text-xl " />
+            <span>Enable Wrapping</span>
+          </button>
+        </div>
       </div>
 
-      {/* Lower Section - Input & Output (25%) */}
-      <div className="grid grid-cols-2 border-t">
-        {/* Input Section */}
-        <div className="p-4 border-r flex flex-col">
-          <div className="flex justify-between">
-          <h2 className="font-semibold mb-2">Input</h2>
-          <p className="flex items-center gap-2 cursor-pointer" onClick={openFilePicker}>
-            Import <CiImport />
-          </p>
-          </div>
-          <input
-            id="fileInput"
-            type="file"
-            accept=".txt,.json,.csv,.md"
-            className="hidden"
-            onChange={handleFileUpload}
-          />
-          <textarea
-            className="w-full h-full p-2 border rounded"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+      <div className="grid grid-rows-[60%_45%] bg-[#33006F]">
+        {/* Upper Section - Code Editor (75%) */}
+        <div className="p-4">
+          <Editor
+            height="100%"
+            width="100%"
+            language={language}
+            theme={theme}
+            value={content}
+            onChange={(newValue) => setContent(newValue)}
+            options={{
+              fontSize: 14,
+              fontFamily: "Jetbrains-Mono",
+              fontLigatures: true,
+              wordWrap: "on",
+              minimap: {
+                enabled: false,
+              },
+              bracketPairColorization: {
+                enabled: true,
+              },
+              cursorBlinking: "expand",
+              formatOnPaste: true,
+              suggest: {
+                showFields: false,
+                showFunctions: false,
+              },
+            }}
           />
         </div>
 
-        {/* Output Section */}
-        <div className="p-4 flex flex-col">
-          <div className="flex justify-between">
-          <h2 className="font-semibold mb-2">Output</h2>
-          <p className="flex items-center gap-2 cursor-pointer" onClick={handleDownload}>
-            Export <CiExport />
-          </p>
+        <div className="grid grid-cols-2 border-t bg-gray-800 border-gray-700 ">
+          {/* Input Section */}
+          <div className="flex flex-col p-4  border-4 border-gray-700">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-semibold text-white">Input</h2>
+              <p
+                className="flex text-white items-center gap-2 cursor-pointer text-gray-300 hover:text-white"
+                onClick={openFilePicker}
+              >
+                Import <CiImport size={20} />
+              </p>
+            </div>
+
+            {/* Hidden File Input */}
+            <input
+              id="fileInput"
+              type="file"
+              accept=".txt,.json,.csv,.md"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
+
+            {/* Drag & Drop Area */}
+            <textarea
+              className={`w-full h-full p-3 border rounded-lg transition bg-gray-900 text-white resize-none focus:outline-none ${
+                dragOver ? "border-white" : "border-gray-600"
+              } focus:border-white`}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              placeholder="Drag & drop a file here or type..."
+            />
           </div>
-          <div className="border rounded p-2 flex-grow">
-            <div>{loading ? "Running..." : output}</div>
+
+          {/* Output Section */}
+          <div className="flex flex-col p-4  border-4 border-gray-700">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-2 ">
+              <h2 className="text-lg font-semibold text-white">Output</h2>
+              <p
+                className="flex text-white items-center gap-2 cursor-pointer  hover:text-white"
+                onClick={handleDownload}
+              >
+                Export <CiExport size={20} />
+              </p>
+            </div>
+
+            {/* Output Container */}
+            <div className="h-full p-3 bg-gray-900 text-white rounded-lg overflow-auto border border-gray-00">
+              <pre className="whitespace-pre-wrap">
+                {loading ? "Running..." : output}
+              </pre>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
 
       <div
         className="fixed bottom-5 right-5 z-50 cursor-pointer"
@@ -405,6 +477,7 @@ const Guest = ({ id }) => {
         </div>
       )}
     </div>
+  
   );
 };
 
