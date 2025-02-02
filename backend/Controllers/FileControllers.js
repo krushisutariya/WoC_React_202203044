@@ -89,7 +89,7 @@ const addFileOrFolder = async (req, res) => {
 
 
 const updateFileContent = async (req, res) => {
-  const { id, content } = req.body;
+  const { id, language, content } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ error: "Invalid file ID" });
@@ -98,7 +98,7 @@ const updateFileContent = async (req, res) => {
   try {
     const file = await UserFile.findByIdAndUpdate(
       id,
-      { content },
+      { content,language },
       { new: true }
     );
 

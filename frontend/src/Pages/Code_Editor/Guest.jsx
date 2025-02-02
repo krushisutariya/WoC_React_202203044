@@ -238,6 +238,7 @@ const Guest = ({ id }) => {
     try {
       await axios.put("http://localhost:3001/file/updateFileContent", {
         id,
+        language,
         content,
       });
 

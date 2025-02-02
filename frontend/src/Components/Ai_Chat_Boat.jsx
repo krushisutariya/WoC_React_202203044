@@ -72,7 +72,7 @@ const AiChatBot = ({ showChat, setShowChat }) => {
     showChat && (
       <div className="flex flex-col h-full p-4 bg-gray-100">
         {/* Close Button */}
-        <div className="flex justify-between rounded-lg bg-blue-500 text-white py-2 px-2 mb-2">
+        <div className="flex justify-between rounded-lg bg-[#33006F] text-white py-2 px-2 mb-2">
           Hi, I am here to help you........{" "}
           <FaFaceSmileBeam className="text-[#FFD65A]" />
           <ImCross className="cursor-pointer" onClick={hideAi} />
@@ -90,8 +90,8 @@ const AiChatBot = ({ showChat, setShowChat }) => {
               <span
                 className={`px-4 py-2 rounded-lg ${
                   message.sender === "user"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-800"
+                    ? "bg-[#800080] text-white"
+                    : "bg-[#D8BFD8] text-gray-800"
                 }`}
               >
                 {message.text}
@@ -124,7 +124,7 @@ const AiChatBot = ({ showChat, setShowChat }) => {
           />
           <button
             type="submit"
-            className="px-6 py-3 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 transition"
+            className="px-6 py-3 bg-[#33006F] text-white rounded-r-md hover:bg-blue-600 transition"
             disabled={isThinking}
           >
             Send
