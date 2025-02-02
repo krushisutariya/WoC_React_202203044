@@ -93,16 +93,16 @@ const submitHandler = async (event) => {
 return (
   
   <>
-    <div className="flex flex-col bg-gray-100">
+    <div className="flex flex-col bg-[#E6E6FA]">
      <Navbar/>
-    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#F5EFE7] animate-fade-in">
+    <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#E6E6FA] animate-fade-in">
       {userLoggedIn && <Navigate to={"/loggeduser"} replace={true} />}
       <div className="w-full md:w-1/2 p-8 text-center animate-slide-in-left">
         <h1 className="text-4xl font-bold text-[#213555] mb-4">Sign Up</h1>
         <div>
           <form onSubmit={submitHandler}>
             <div className="flex flex-col text-left">
-              <label className="text-[#213555] font-medium mb-2">
+              <label className="text-[#33006F] font-medium mb-2">
                 UserName<sup className="text-red-500">*</sup>
               </label>
               <input
@@ -113,12 +113,12 @@ return (
                 placeholder="Enter username"
                 autoComplete="off" 
                 onChange={changeHandler}
-                className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
+                className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#720e9e] transition-transform duration-300 transform focus:scale-105"
               />
             </div>
 
             <div className="flex flex-col text-left">
-              <label className="text-[#213555] font-medium mb-2 mt-2">
+              <label className="text-[#33006F] font-medium mb-2 mt-2">
                 Email Address <sup className="text-red-500">*</sup>
               </label>
               <input
@@ -129,12 +129,12 @@ return (
                 placeholder="Enter email address"
                 autoComplete="off" 
                 onChange={changeHandler}
-                className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
+                className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#720e9e] transition-transform duration-300 transform focus:scale-105"
               />
             </div>
 
             <div className="flex flex-col text-left">
-              <label className="text-[#213555] font-medium mb-2 mt-4">
+              <label className="text-[#33006F] font-medium mb-2 mt-4">
                 Password <sup className="text-red-500">*</sup>
               </label>
               <div className="relative">
@@ -145,7 +145,7 @@ return (
                   value={formData.password}
                   placeholder="Enter password"
                   onChange={changeHandler}
-                  className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
+                  className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#720e9e] transition-transform duration-300 transform focus:scale-105"
                 />
                 <span
                   onClick={() => setShowPassword(!showPassword)}
@@ -162,7 +162,7 @@ return (
 
             <button
               type="submit"
-              className="w-full py-2 px-4 bg-[#213555] text-white rounded-lg hover:scale-105 hover:bg-[#3E5879] transition-transform duration-200 focus:outline-none mt-4"
+              className="w-full py-2 px-4 bg-[#33006F] text-white rounded-lg hover:scale-105 hover:bg-[#3E5879] transition-transform duration-200 focus:outline-none mt-4"
               disabled={isRegistering}
             >
               {isRegistering ? "Signing Up..." : "Sign Up"}

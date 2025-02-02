@@ -46,10 +46,10 @@ const OtpVerification = () => {
           <div className="flex flex-col space-y-16">
           
             <div className="text-center space-y-4">
-              <h1 className="text-3xl font-semibold text-gray-800">
+              <h1 className="text-3xl font-semibold text-[#33006F]">
                 Email Verification
               </h1>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-[#33006F]">
                 We have sent a code to your email{" "}
                 <span className="font-medium">{email}</span>
               </p>
@@ -81,18 +81,18 @@ const OtpVerification = () => {
                   <button
                     type="button"
                     onClick={() => verifyOTP()}
-                    className="w-full py-3 bg-blue-600 text-white font-semibold text-sm rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                    className="w-full py-3 bg-[#33006F] text-white font-semibold text-sm rounded-lg hover:bg-[#662d91] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
                   >
                     Verify Account
                   </button>
-                  <div className="text-center text-sm font-medium text-gray-500">
+                    <div className="text-center text-sm font-medium text-[#33006F]">
                     <p>Didn't receive code?</p>
                     <button
                       type="button"
                       className={`font-medium ${
                         disable
                           ? "text-gray-400 cursor-not-allowed"
-                          : "text-blue-600 hover:underline"
+                          : "text-[#33006F] hover:underline"
                       }`}
                       onClick={() => resendOTP()}
                       disabled={disable}

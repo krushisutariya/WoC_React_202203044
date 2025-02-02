@@ -49,14 +49,14 @@ const ForgotPassword = () => {
        <Navbar/>
     <div className="flex items-center justify-center mt-5 mb-5 ">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-semibold text-gray-800 text-center mb-6">
+        <h1 className="text-2xl font-semibold text-[#33006F] text-center mb-6">
           Forgot Password
         </h1>
         <form onSubmit={submitHandler} className="space-y-6">
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-[#33006F]"
             >
               Email Address
             </label>
@@ -72,7 +72,7 @@ const ForgotPassword = () => {
           </div>
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="w-full py-2 px-4 bg-[#33006F] text-white font-semibold rounded-lg hover:bg-[#662d91] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Send OTP
           </button>

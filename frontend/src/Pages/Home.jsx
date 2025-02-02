@@ -10,27 +10,26 @@ import "aos/dist/aos.css"; // AOS CSS
 
 const Home = () => {
   useEffect(() => {
-
     AOS.init({
-      duration: 1000,  
-      offset: 200,     
-      once: false,      
+      duration: 1000,
+      offset: 200,
+      once: false,
     });
 
     window.addEventListener('scroll', AOS.refresh);
-    
+
     return () => {
-      window.removeEventListener('scroll', AOS.refresh); 
+      window.removeEventListener('scroll', AOS.refresh);
     };
   }, []);
 
   return (
-    <div>
+    <div className="bg-[#E6E6FA]">
       <NavBar />
 
-      <div className="text-center py-16 bg-gray-100 shadow-lg" data-aos="fade-up">
+      <section className="text-center py-16 bg-[#E6E6FA] shadow-lg" data-aos="fade-up">
         <div
-          className="text-3xl font-bold mb-4"
+          className="text-3xl font-bold mb-4 text-[#33006F]"
           style={{ fontFamily: "'Candara', sans-serif" }}
         >
           WELCOME TO CODE IDE
@@ -39,15 +38,17 @@ const Home = () => {
           <img
             src={code}
             alt="Code editor screenshot"
-            className="max-w-4/5 rounded-lg mt-4 shadow-lg"
+            className="max-w-full md:max-w-4/5 rounded-lg mt-4 shadow-lg"
             data-aos="zoom-in"
           />
         </div>
-      </div>
+      </section>
 
-
-      <div className="py-24">
-        <div className="text-3xl font-bold mb-4 text-center text-[#3E5879]" data-aos="fade-up">
+      <section className="py-24">
+        <div
+          className="text-3xl font-bold mb-8 text-center text-[#33006F]"
+          data-aos="fade-up"
+        >
           Features
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
@@ -62,7 +63,7 @@ const Home = () => {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
       <Footer />
     </div>

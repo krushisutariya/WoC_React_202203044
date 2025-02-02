@@ -3,108 +3,60 @@ import { FaTwitterSquare, FaInstagram, FaLinkedin, FaFacebook } from "react-icon
 import { IoCall } from "react-icons/io5";
 import { IoMail } from "react-icons/io5";
 import { FaLocationDot } from "react-icons/fa6";
-import { createTheme, ThemeProvider, Typography, Container, Grid, Paper, Link } from "@mui/material";
 import profile from "../assets/profile.jpg";
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#213555", // Dark Blue
-    },
-    secondary: {
-      main: "#3E5879", // Blue Gray
-    },
-    background: {
-      default: "#F5EFE7", // Light Beige
-      paper: "#D8C4B6", // Light Tan
-    },
-    text: {
-      primary: "#213555", // Dark Blue for text
-      secondary: "#3E5879", // Blue Gray for secondary text
-    },
-  },
-  typography: {
-    fontFamily: "'Candara', sans-serif", // Font family as specified
-  },
-});
 
 function Footer() {
   return (
-    <ThemeProvider theme={theme}>
-      <footer style={{ backgroundColor: theme.palette.primary.main, color: "white", padding: "3rem 0" }}>
-        <Container>
-          <Grid container spacing={10} justifyContent="center">
-            {/* Links Section */}
-            <Grid item xs={12} md={2}>
-              <Typography variant="h6" style={{ textTransform: "uppercase", fontWeight: "bold" }}>
-                <Link href="#!" color="inherit" underline="none">
-                  About Us
-                </Link>
-              </Typography>
-            </Grid>
+    <footer className="bg-gradient-to-r from-[#33006F] to-[#452c63] text-white py-12">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-center gap-10 text-center md:text-left">
+          {/* Links Section */}
+          <div>
+            <p className="text-lg font-bold text-uppercase mb-4">About Us</p>
+        
+          </div>
+          <div>
+            <p className="text-lg font-bold text-uppercase mb-4">Help</p>
             
-            <Grid item xs={12} md={2}>
-              <Typography variant="h6" style={{ textTransform: "uppercase", fontWeight: "bold" }}>
-                <Link href="#!" color="inherit" underline="none">
-                  Help
-                </Link>
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={2}>
-              <Typography variant="h6" style={{ textTransform: "uppercase", fontWeight: "bold" }}>
-                <Link href="#!" color="inherit" underline="none">
-                  Contact
-                </Link>
-              </Typography>
-            </Grid>
-          </Grid>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-uppercase mb-4">Contact</p>
+          </div>
+        </div>
 
-          <hr style={{ borderColor: "#F5EFE7", marginTop: "2rem" }} />
+        <hr className="border-t-2 border-[#F5EFE7] my-8" />
 
-          {/* Footer Text */}
-          <Grid container justifyContent="center">
-            <Grid item xs={12} md={8}>
-              <Typography variant="body1" style={{ textAlign: "center", marginBottom: "2rem" }}>
-             Happy coding! Keep building and exploring.
-             <br/>
-              The world is yours to create. Happy programming!
-              </Typography>
-            </Grid>
-          </Grid>
+        {/* Footer Text */}
+        <div className="text-center mb-8">
+          <p className="text-lg">
+            Happy coding! Keep building and exploring.
+            <br />
+            The world is yours to create. Happy programming!
+          </p>
+        </div>
 
-          {/* Social Media Links */}
-          <Grid container justifyContent="center" spacing={2}>
-            <Grid item>
-              <Link href="https://facebook.com" color="inherit" target="_blank" rel="noopener noreferrer">
-                <FaFacebook size={30} />
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="https://twitter.com" color="inherit" target="_blank" rel="noopener noreferrer">
-                <FaTwitterSquare size={30} />
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="https://www.linkedin.com/in/krushi-sutariya-933150289/" color="inherit" target="_blank" rel="noopener noreferrer">
-                <FaLinkedin size={30} />
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="https://instagram.com" color="inherit" target="_blank" rel="noopener noreferrer">
-                <FaInstagram size={30} />
-              </Link>
-            </Grid>
-          </Grid>
+        {/* Social Media Links */}
+        <div className="flex justify-center space-x-4 mb-8">
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5EFE7]">
+            <FaFacebook size={30} />
+          </a>
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5EFE7]">
+            <FaTwitterSquare size={30} />
+          </a>
+          <a href="https://www.linkedin.com/in/krushi-sutariya-933150289/" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5EFE7]">
+            <FaLinkedin size={30} />
+          </a>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5EFE7]">
+            <FaInstagram size={30} />
+          </a>
+        </div>
 
-          {/* Footer Bottom Section */}
-          <Grid container justifyContent="center" style={{ marginTop: "3rem" }}>
-            <Typography variant="body2" style={{ textAlign: "center" }}>
-              © 2025 Krushi Sutariya | All Rights Reserved
-            </Typography>
-          </Grid>
-        </Container>
-      </footer>
-    </ThemeProvider>
+        {/* Footer Bottom Section */}
+        <div className="text-center">
+          <p className="text-sm">© 2025 Krushi Sutariya | All Rights Reserved</p>
+        </div>
+      </div>
+    </footer>
   );
 }
 

@@ -22,7 +22,6 @@ const getFileStructure = async (req, res) => {
       return res.status(404).json({ message: "File structure not found. Initializing default structure..." });
     }
 
-    // Send the entire array
     res.json(userFiles);
   } catch (error) {
     console.error("Error fetching file structure:", error.message);
@@ -36,10 +35,21 @@ const getFileStructure = async (req, res) => {
 
 const addFileOrFolder = async (req, res) => {
   try {
-    const { name, isFolder, parent, content,owner } = req.body;
+    const { name, isFolder, parent,language, content,owner } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: "Name is required." });
+    }
+    const deleted=false;
+
+    const existingFileOrFolder = await UserFile.findOne({
+      name,
+      parent,
+      deleted: false, // Only check for non-deleted items
+    });
+
+    if (existingFileOrFolder) {
+      return res.status(400).json({ message: `File or folder with the name "${name}" already exists in this location.` });
     }
 
     const newFileOrFolder = new UserFile({
@@ -48,7 +58,9 @@ const addFileOrFolder = async (req, res) => {
       parent: parent || null, // Allow root-level items
       children: [],
       content, // Only files have content
-      owner, // Use owner from request
+      owner,
+      deleted,
+      language // Use owner from request
     });
 
     // Save to database
@@ -100,6 +112,62 @@ const updateFileContent = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+
+
+const updateFileName = async (req, res) => {
+  const { id, name, parent, language } = req.body;
+
+  // Validate the ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "Invalid file ID" });
+  }
+
+  // Validate the name field
+  if (!name || name.trim() === "") {
+    return res.status(400).json({ error: "Filename is required" });
+  }
+
+  console.log(name);
+  console.log(parent);
+
+  try {
+    // Check if a file with the same name already exists (excluding the current file)
+    const existingFileOrFolder = await UserFile.findOne({
+      name,
+      parent,
+      deleted: false, // Only check for non-deleted items
+      _id: { $ne: id }, // Exclude the current file from the check
+    });
+
+    console.log(existingFileOrFolder);
+
+    if (existingFileOrFolder) {
+      return res.status(400).json({
+        message: `File or folder with the name "${name}" already exists in this location.`,
+      });
+    }
+
+    // Find the file and update its name
+    const file = await UserFile.findByIdAndUpdate(
+      id,
+      { name, language },
+      { new: true } // Return the updated file object
+    );
+
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    res.json({ message: "File name updated successfully", file });
+  } catch (error) {
+    console.error("Error updating name:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+
 
 const getContent = async (req, res) => {
   const { id } = req.query;
@@ -221,4 +289,5 @@ module.exports = {
   deleteFileOrFolder,
   getContent,
   executeCode,
+  updateFileName,
 };

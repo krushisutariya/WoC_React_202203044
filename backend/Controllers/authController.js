@@ -10,9 +10,10 @@ const defaultFileStructure = {
   isFolder: true,
   children: [
     {
-      name: "defaultFile.js",
+      name: "defaultFile",
       isFolder: false,
-      content: "// Your code here...",
+      content: "console.log('hello, world')",
+      language: "javascript"
     },
   ],
 };
@@ -48,7 +49,8 @@ const register = async (req, res) => {
       isFolder: defaultFileStructure.children[0].isFolder,
       content: defaultFileStructure.children[0].content,
       owner: newUser._id,
-      parent: rootFolder._id, // Set the root folder as the parent
+      parent: rootFolder._id,
+      language: defaultFileStructure.children[0].language // Set the root folder as the parent
     });
 
     await defaultFile.save();
@@ -168,15 +170,19 @@ const resetPassword = async (req, res) => {
 const getUserIdByEmail = async (req, res) => {
   try {
     const { email } = req.query; // Get email from query parameters
-
+   
+    console.log(email);
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
     const user = await CoderModel.findOne({ email });
+    console.log(user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+   
+    
 
     res.json({ userId: user._id });
   } catch (error) {

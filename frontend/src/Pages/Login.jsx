@@ -73,14 +73,14 @@ const Login = () => {
   return (
     <>
       {userLoggedIn && <Navigate to={"/loggeduser"} replace={true}  />}
-      <div className="flex flex-col bg-gray-100">
+      <div className="flex flex-col bg-[#E6E6FA]">
         <Navbar className="w-full" />
-        <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#F5EFE7] animate-fade-in">
+        <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#E6E6FA] animate-fade-in">
           <div className="w-full md:w-1/2 p-8 text-center animate-slide-in-left">
-            <h1 className="text-4xl font-bold text-[#213555] mb-4">Login</h1>
+            <h1 className="text-4xl font-bold text-[#33006F] mb-4">Login</h1>
             <form onSubmit={submitHandler}>
               <div className="flex flex-col text-left">
-                <label className="text-[#213555] font-medium mb-2">
+                <label className="text-[#33006F] font-medium mb-2">
                   Email Address <sup className="text-red-500">*</sup>
                 </label>
                 <input
@@ -91,12 +91,12 @@ const Login = () => {
                   placeholder="Enter email address"
                   onChange={changeHandler}
                   autoComplete="off" 
-                  className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
+                  className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#720e9e] transition-transform duration-300 transform focus:scale-105"
                 />
               </div>
 
               <div className="flex flex-col text-left">
-                <label className="text-[#213555] font-medium mb-2 mt-4">
+                <label className="text-[#33006F] font-medium mb-2 mt-4">
                   Password <sup className="text-red-500">*</sup>
                 </label>
                 <div className="relative">
@@ -107,11 +107,11 @@ const Login = () => {
                     value={formData.password}
                     placeholder="Enter password"
                     onChange={changeHandler}
-                    className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#213555] transition-transform duration-300 transform focus:scale-105"
+                    className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#720e9e] transition-transform duration-300 transform focus:scale-105"
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute top-2/4 text-2xl right-3 transform -translate-y-2/4 cursor-pointer text-[#3E5879] transition-transform duration-200 hover:scale-110 active:scale-95"
+                    className="absolute top-2/4 text-2xl right-3 transform -translate-y-2/4 cursor-pointer text-[#33006F] transition-transform duration-200 hover:scale-110 active:scale-95"
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </span>
@@ -120,7 +120,7 @@ const Login = () => {
 
                <div className="flex justify-between">
 
-              <label className="flex items-center text-[#3E5879] mt-4">
+              <label className="flex items-center text-[#33006F] mt-4">
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -130,7 +130,7 @@ const Login = () => {
                 Remember Me
               </label>
 
-              <button className="flex items-center text-[#3E5879] mt-4 hover:underline" onClick={()=>navigate("/forgotpassword")}>
+              <button className="flex items-center text-[#33006F] mt-4 hover:underline" onClick={()=>navigate("/forgotpassword")}>
                 Forgot password?{" "}
               </button>
                </div>
@@ -138,16 +138,16 @@ const Login = () => {
               {errorMessage && <p className="text-red-500">{errorMessage}</p>}
               <button
                 type="submit"
-                className="w-full py-2 px-4 bg-[#213555] text-white rounded-lg hover:scale-105 hover:bg-[#3E5879] transition-transform duration-200 focus:outline-none mt-4"
+                className="w-full py-2 px-4 bg-[#33006F] text-white rounded-lg hover:scale-105 hover:bg-[#3E5879] transition-transform duration-200 focus:outline-none mt-4"
               >
                 Log in
               </button>
 
-              <p className="mt-4 text-sm text-center text-[#3E5879]">
+              <p className="mt-4 text-sm text-center text-[#33006F]">
                 Don't have an account?{" "}
                 <Link
                   to="/signup"
-                  className="text-[#213555] ml-2 font-medium hover:underline"
+                  className="text-[#33006F] ml-2 font-medium hover:underline"
                 >
                   Sign Up
                 </Link>

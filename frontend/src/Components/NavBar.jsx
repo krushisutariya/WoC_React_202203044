@@ -35,61 +35,64 @@ const Navbar = () => {
   const { userLoggedIn, setuserLoggedIn } = useAuth();
 
   return (
-    <ThemeProvider theme={theme}>
-      <div className="bg-gradient-to-r from-[#33006F] to-[#4B0082] text-white shadow-md">
-        <div className="container mx-auto px-4 py-4 flex flex-wrap justify-between items-center">
-          <nav className="text-2xl font-bold">CODE IDE</nav>
-          <div className="flex flex-wrap items-center gap-4">
-            {userLoggedIn ? (
-              <>
-                <Link to="/">
-                  <Button className="btn">Home</Button>
-                </Link>
-                <Link to="/loggeduser">
-                  <Button className="btn">CodeBoard</Button>
-                </Link>
-                <Button
-                  onClick={() => {
-                    setuserLoggedIn(false);
-                    navigate("/login");
-                  }}
-                  className="btn bg-red-600 hover:bg-red-800"
-                >
-                  Log out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/">
-                  <button className="flex items-center gap-2  bg-[#720e9e] text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-blue-600 transition">
-                    <IoMdHome className="mr-2" /> 
-                    <span>Home</span>
-                  </button>
-                </Link>
-                <Link to="/login">
-                  <button className="flex items-center gap-2  bg-[#720e9e] text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-blue-600 transition">
-                    <MdOutlinePersonOutline className="mr-2" /> 
-                    <span>Login</span>
-                  </button>
-                </Link>
-                <Link to="/signup">
-                  <button className="flex items-center gap-2  bg-[#720e9e] text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-blue-600 transition">
-                    <FaRegPlayCircle className="mr-2" /> 
-                    <span>SignUp</span>
-                  </button>
-                </Link>
-                <Link to="/guest">
-                  <button className="flex items-center gap-2  bg-[#720e9e] text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-blue-600 transition">
-                  <IoPersonOutline />
-                  <span> Explore</span>                 
-                  </button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
+    <div className="bg-gradient-to-r from-[#33006F] to-[#800080] text-white shadow-md h-[10vh] ">
+    <div className="container mx-auto my-auto px-2 py-4 flex flex-wrap justify-between items-center">
+      <nav className="text-3xl font-bold">CODE IDE</nav>
+      <div className="flex flex-wrap items-center gap-2">
+        {userLoggedIn ? (
+          <>
+            <Link to="/">
+              <button className="flex items-center gap-1 bg-[#33006F] text-white px-4 py-2 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-[#720e9e] transition">
+                Home
+              </button>
+            </Link>
+            <Link to="/loggeduser">
+              <button className="flex items-center gap-1 bg-[#33006F] text-white px-4 py-2 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-[#720e9e] transition">
+                CodeBoard
+              </button>
+            </Link>
+            <button
+              onClick={() => {
+                setuserLoggedIn(false);
+                navigate("/login");
+              }}
+              className="flex items-center gap-1 bg-[#33006F] text-white px-4 py-2 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-[#720e9e] transition"
+            >
+              Log out
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/">
+              <button className="flex items-center  gap-1 bg-[#33006F] text-white px-4 py-2 sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-[#720e9e] transition">
+                <IoMdHome className="mr-1" />
+                <span>Home</span>
+              </button>
+            </Link>
+            <Link to="/login">
+              <button className="flex items-center gap-1 bg-[#33006F] text-white px-4 py-2 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-[#720e9e] transition">
+                <MdOutlinePersonOutline className="mr-1" />
+                <span>Login</span>
+              </button>
+            </Link>
+            <Link to="/signup">
+              <button className="flex items-center gap-1 bg-[#33006F] text-white px-4 py-2 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-[#720e9e] transition">
+                <FaRegPlayCircle className="mr-1" />
+                <span>SignUp</span>
+              </button>
+            </Link>
+            <Link to="/guest">
+              <button className="flex items-center gap-1 bg-[#33006F] text-white px-4 py-2 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-[#720e9e] transition">
+                <IoPersonOutline className="mr-1" />
+                <span>Explore</span>
+              </button>
+            </Link>
+          </>
+        )}
       </div>
-    </ThemeProvider>
+    </div>
+  </div>
+  
   );
 };
 

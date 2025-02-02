@@ -24,6 +24,7 @@ const fileStructureSchema = new mongoose.Schema({
     type: String,
     default: null, // Applicable only for files, not folders
   },
+
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'coders', // Links the structure to a specific coder (user)
@@ -32,6 +33,10 @@ const fileStructureSchema = new mongoose.Schema({
   deleted: {
     type: Boolean,
     default: false, // For soft delete functionality
+  },
+  language: {
+    type: String,
+    default: null, // Applicable only for files, not folders
   },
 });
 

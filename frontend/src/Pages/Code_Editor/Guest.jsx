@@ -28,13 +28,110 @@ const Guest = ({ id }) => {
   );
   const [output, setOutput] = useState("This is your output text.");
   const [dragOver, setDragOver] = useState(false);
+  const [fullScreen, setFullscreen] = useState(false);
+  const [wrap, setWrap] = useState(false);
   const { userLoggedIn } = useAuth();
 
-  const API_KEY = import.meta.env.VITE_JUDGE0_API_KEY;
+  const languageversion = {
+    javascript: {
+      version: "18.15.0",
+      default: `console.log("Hello, World!");`,
+    },
+    c: {
+      version: "10.2.0",
+      default: `#include <stdio.h>
+  int main() {
+      printf("Hello, World!");
+      return 0;
+  }`,
+    },
+    cpp: {
+      version: "10.2.0",
+      default: `#include <iostream>
+  using namespace std;
+  
+  int main() {
+      cout << "Hello, World!" << endl;
+      return 0;
+  }`,
+    },
+    java: {
+      version: "15.0.2",
+      default: `public class Main {
+      public static void main(String[] args) {
+          System.out.println("Hello, World!");
+      }
+  }`,
+    },
+    typescript: {
+      version: "5.0.3",
+      default: `console.log("Hello, World!");`,
+    },
+    python: {
+      version: "3.10.0",
+      default: `print("Hello, World!")`,
+    },
+    go: {
+      version: "1.16.2",
+      default: `package main
+  
+  import "fmt"
+  
+  func main() {
+      fmt.Println("Hello, World!")
+  }`,
+    },
+    kotlin: {
+      version: "1.8.20",
+      default: `fun main() {
+      println("Hello, World!")
+  }`,
+    },
+    csharp: {
+      version: "6.12.0",
+      default: `using System;
+  
+  class Program {
+      static void Main() {
+          Console.WriteLine("Hello, World!");
+      }
+  }`,
+    },
+    perl: {
+      version: "5.36.0",
+      default: `print "Hello, World!\n";`,
+    },
+    php: {
+      version: "8.2.3",
+      default: `<?php
+  echo "Hello, World!";
+  ?>`,
+    },
+    ruby: {
+      version: "3.0.1",
+      default: `puts "Hello, World!"`,
+    },
+    rust: {
+      version: "1.68.2",
+      default: `fn main() {
+      println!("Hello, World!");
+  }`,
+    },
+    swift: {
+      version: "5.3.3",
+      default: `import Swift
+  
+  print("Hello, World!")`,
+    },
+    shell: {
+      version: "5.0.0",
+      default: `echo "Hello, World!"`,
+    },
+  };
 
   useEffect(() => {
-    if (!id && !userLoggedIn) {
-      setContent("console.log('How are you?');");
+    if (!id && !userLoggedIn && !content) {
+      setContent("console.log('Hellow world');");
     }
 
     if (!id) {
@@ -127,8 +224,6 @@ const Guest = ({ id }) => {
     });
   };
 
-  const editorOption = {};
-
   const handleThemeChange = (event) => {
     const selectedTheme = event.target.value;
     setTheme(selectedTheme);
@@ -154,8 +249,30 @@ const Guest = ({ id }) => {
   };
 
   const handleLanguageChange = (event) => {
+    setContent(languageversion[event.target.value].default);
     setLanguage(event.target.value);
   };
+
+  useEffect(() => {
+    // Load the saved content and language from localStorage if available
+    const savedContent = localStorage.getItem("content");
+    const savedLanguage = localStorage.getItem("language");
+
+    if (savedContent && savedLanguage) {
+      setContent(savedContent);
+      setLanguage(savedLanguage);
+    } else {
+      // Set default values if no saved data exists
+      setContent(""); // Or any default you prefer
+      setLanguage("javascript");
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save content and language to localStorage whenever they change
+    localStorage.setItem("content", content);
+    localStorage.setItem("language", language);
+  }, [content, language]);
 
   useEffect(() => {
     if (monaco) {
@@ -173,7 +290,6 @@ const Guest = ({ id }) => {
       reader.readAsText(file);
     }
   };
-
   // Function to handle file export
   const handleCodeFileDownload = () => {
     let extension;
@@ -239,24 +355,6 @@ const Guest = ({ id }) => {
     document.body.removeChild(a);
   };
 
-  const languageversion = {
-    javascript: { version: "18.15.0" },
-    c: { version: "10.2.0" },
-    cpp: { version: "10.2.0" },
-    java: { version: "15.0.2" },
-    typescript: { version: "5.0.3" },
-    python: { version: "3.10.0" },
-    go: { version: "1.16.2" },
-    kotlin: { version: "1.8.20" },
-    csharp: { version: "6.12.0" },
-    perl: { version: "5.36.0" },
-    php: { version: "8.2.3" },
-    ruby: { version: "3.0.1" },
-    rust: { version: "1.68.2" },
-    swift: { version: "5.3.3" },
-    shell: { version: "5.0.0" },
-  };
-
   const runcode = async () => {
     try {
       console.log("this is frontend");
@@ -291,20 +389,25 @@ const Guest = ({ id }) => {
   };
 
   return (
-    <div className="grid grid-rows-[12%_11%_88%] bg-[#33006F] ">
-
+    <div
+      className={`grid grid-rows-[auto_auto_1fr_auto] grid-cols-1 w-full box-border bg-[#E6E6FA] max-h-[70%]`}
+    >
       {!userLoggedIn && (
-        <div className="top-0 left-0 w-full z-50 mb-2">
+        <div className="top-0 right-0 ">
           <Navbar />
         </div>
       )}
 
-   
-      <div className="flex flex-wrap items-center justify-between px-6 bg-gray-900 shadow-md gap-4 ">
+      <div className="flex flex-wrap items-center justify-between mt-5 px-6 bg-gray-900 shadow-md gap-4 ">
         {/* Left Section - User Name & Language Selector */}
         <div className="flex items-center p-3 gap-4 rounded-lg">
           {/* Terminal Icon */}
-          <div className="text-xl md:text-2xl text-white border-gray-700 bg-gray-800 focus:border-white focus:outline-none">
+          <div
+            onClick={() => {
+              setFullscreen(!fullScreen);
+            }}
+            className="text-xl md:text-2xl text-white border-gray-700 bg-gray-800 focus:border-white focus:outline-none"
+          >
             <IoTerminalOutline className="text-4xl" />
           </div>
 
@@ -316,7 +419,11 @@ const Guest = ({ id }) => {
           )}
 
           {/* Language Selection Dropdown */}
-          <select className=" md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none">
+          <select
+            value={language}
+            onChange={handleLanguageChange}
+            className=" md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
+          >
             {Object.entries(languageversion).map(([key, { version }]) => (
               <option key={key} value={key}>
                 {key.charAt(0).toUpperCase() + key.slice(1)} ({version})
@@ -349,58 +456,82 @@ const Guest = ({ id }) => {
         {/* Right Section - Theme & Enable Wrapping */}
         <div className="flex flex-wrap items-center gap-4">
           {/* Theme Dropdown */}
+        
+
           <select
             className="md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
             value={theme}
-            onChange={handleThemeChange}
+            onChange={(e) => setTheme(e.target.value)}
           >
-            {Object.keys(THEMES).map((themeKey) => (
-              <option key={themeKey} value={themeKey}>
-                {themeKey.replace("-", " ")}
-              </option>
-            ))}
+            <option value="vs-dark">Dark Theme</option>
+            <option value="vs-light">Light Theme</option>
+            <option value="hc-black">High Contrast</option>
           </select>
 
           {/* Enable Wrapping Button */}
-          <button className="flex items-center gap-2 p-2  sm:text-base md:text-lg border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none">
+          <button
+            onClick={() => setWrap(!wrap)}
+            className="flex items-center gap-2 p-2  sm:text-base md:text-lg border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
+          >
             <TbTextWrapColumn className="text-lg sm:text-xl " />
-            <span>Enable Wrapping</span>
+            {!wrap && <span>Enable Wrapping</span>}
+            {wrap && <span>Disable Wrapping</span>}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-rows-[60%_45%] bg-[#33006F]">
-        {/* Upper Section - Code Editor (75%) */}
-        <div className="p-4">
-          <Editor
-            height="100%"
-            width="100%"
-            language={language}
-            theme={theme}
-            value={content}
-            onChange={(newValue) => setContent(newValue)}
-            options={{
-              fontSize: 14,
-              fontFamily: "Jetbrains-Mono",
-              fontLigatures: true,
-              wordWrap: "on",
-              minimap: {
-                enabled: false,
-              },
-              bracketPairColorization: {
-                enabled: true,
-              },
-              cursorBlinking: "expand",
-              formatOnPaste: true,
-              suggest: {
-                showFields: false,
-                showFunctions: false,
-              },
-            }}
-          />
-        </div>
+      {/* Upper Section - Code Editor (75%) */}
+      <div className={`p-2 relative ${fullScreen ? "h-[80vh]" : "h-[55vh]"}`}>
+        <input
+          type="file"
+          id="file-upload"
+          style={{ display: "none" }}
+          onChange={handleCodeFileUpload} // Handle file selection
+          accept=".js, .cpp, .java, .py, .ts, .go, .kt, .cs, .pl, .php, .rb, .rs, .swift, .sh" // Optional file type restriction
+        />
 
-        <div className="grid grid-cols-2 border-t bg-gray-800 border-gray-700 ">
+        <p
+          className="rounded-lg absolute z-10 text-white cursor-pointer hover:text-white-300 top-4 right-4 bg-[#662d91] p-2 flex items-center justify-center transition-all duration-200"
+          onClick={() => document.getElementById("file-upload").click()} // Trigger file input
+        >
+          <CiImport className="text-1xl font-bold" />
+        </p>
+        <p
+          className="rounded-lg absolute z-10 text-white top-4 right-14 bg-[#662d91] cursor-pointer hover:text-white-300 p-2 flex items-center justify-center transition-all duration-200"
+          onClick={handleCodeFileDownload}
+        >
+          <CiExport className="text-1xl font-bold" />
+        </p>
+
+        <Editor
+          height="100%"
+          width="100%"
+          language={language}
+          theme={theme}
+          value={content}
+          onChange={(newValue) => setContent(newValue)}
+          options={{
+            fontSize: 14,
+            fontFamily: "Jetbrains-Mono",
+            fontLigatures: true,
+            wordWrap: wrap,
+            minimap: {
+              enabled: false,
+            },
+            bracketPairColorization: {
+              enabled: true,
+            },
+            cursorBlinking: "expand",
+            formatOnPaste: true,
+            suggest: {
+              showFields: false,
+              showFunctions: false,
+            },
+          }}
+        />
+      </div>
+      {!fullScreen && (
+        <div className="grid grid-cols-2 h-[25vh] box-border gap-2 bg-gray-800 border-gray-700 ">
           {/* Input Section */}
           <div className="flex flex-col p-4  border-4 border-gray-700">
             {/* Header */}
@@ -458,7 +589,7 @@ const Guest = ({ id }) => {
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div
         className="fixed bottom-5 right-5 z-50 cursor-pointer"
@@ -477,7 +608,6 @@ const Guest = ({ id }) => {
         </div>
       )}
     </div>
-  
   );
 };
 
