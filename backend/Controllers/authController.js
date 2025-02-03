@@ -95,7 +95,7 @@ const sendEmail = ({ recipient_email, OTP }) => {
     });
 
     const mail_configs = {
-      from: 'krushisutr@gmail.com',
+      from: process.env.GMAIL_USER,
       to: recipient_email,
       subject: "CODE IDE PASSWORD RECOVERY",
       html: `<div style="font-family: Arial, sans-serif; min-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; line-height: 1.6; color: #333;">

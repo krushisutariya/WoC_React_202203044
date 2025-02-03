@@ -541,7 +541,7 @@ const Guest = ({ id }) => {
       {!fullScreen && (
         <div className="grid grid-cols-2 h-[25vh] box-border gap-2 bg-gray-800 border-gray-700 ">
           {/* Input Section */}
-          <div className="flex flex-col p-4  border-4 border-gray-700">
+          <div className="flex flex-col p-4  border-4 border-gray-700" style={{ scrollbarWidth: "none", overflow: "auto" }}>
             {/* Header */}
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-lg font-semibold text-white">Input</h2>
@@ -573,11 +573,12 @@ const Guest = ({ id }) => {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               placeholder="Drag & drop a file here or type..."
+              style={{ scrollbarWidth: "none", overflow: "auto" }}
             />
           </div>
 
           {/* Output Section */}
-          <div className="flex flex-col p-4  border-4 border-gray-700">
+          <div className="flex flex-col p-4  border-4 border-gray-700" style={{ scrollbarWidth: "none", overflow: "auto" }}>
             {/* Header */}
             <div className="flex justify-between items-center mb-2 ">
               <h2 className="text-lg font-semibold text-white">Output</h2>
@@ -590,8 +591,8 @@ const Guest = ({ id }) => {
             </div>
 
             {/* Output Container */}
-            <div className="h-full p-3 bg-gray-900 text-white rounded-lg overflow-auto border border-gray-00">
-              <pre className="whitespace-pre-wrap">
+            <div className="h-full p-3 bg-gray-900 text-white rounded-lg border border-gray-00 " style={{ scrollbarWidth: "none", overflow: "auto" }}>
+              <pre className="whitespace-pre-wrap ">
                 {loading ? "Running..." : output}
               </pre>
             </div>
