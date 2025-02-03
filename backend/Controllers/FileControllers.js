@@ -190,6 +190,29 @@ const getContent = async (req, res) => {
 };
 
 
+const getLanguage = async (req, res) => {
+  const { id } = req.query;
+ 
+
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "Invalid file ID" });
+  }
+
+  try {
+    const file = await UserFile.findById(id);
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
+    }
+    console.log(file.language);
+    res.json({ language: file.language});
+  } catch (error) {
+    console.error("Error fetching file:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
 
 const deleteFileOrFolder = async (req, res) => {
   try {
@@ -290,4 +313,5 @@ module.exports = {
   getContent,
   executeCode,
   updateFileName,
+  getLanguage
 };

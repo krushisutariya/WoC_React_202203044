@@ -5,19 +5,38 @@ import FileStore from "./FileStore.jsx";
 import Guest from "./Guest.jsx";
 import { useAuth } from "../../Context/AuthContext.jsx";
 import { MdFullscreen, MdFullscreenExit } from "react-icons/md";
-
+import axios from "axios";
 const LoggedUserCode = () => {
   const { email } = useAuth();
   const { openfile, setOpenFile, defaultId } = useAuth();
   const [fullScreen, setFullScreen] = useState(false);
   const [showChat, setShowChat] = useState(false);
-
+  const [mainLanguage,setMainLanguage]=useState(null);
+  const {url} =useAuth();
   useEffect(() => {
   
     if (!openfile) setOpenFile(defaultId);
     const savedChatVisibility = localStorage.getItem("showChat");
     setShowChat(savedChatVisibility ? JSON.parse(savedChatVisibility) : false);
   }, [openfile]);
+
+ 
+  useEffect(() => {
+    const getLanguage = async () => {
+      try {
+        const { data } = await axios.get(`${url}/getLanguage`, { params: { id: openfile } });
+        console.log("Fetched data:", data);
+        setMainLanguage(data.language); // Ensure you return the correct language
+      } catch (error) {
+        console.error("Error fetching language:", error);
+      }
+    };
+  
+    if (openfile) { // Ensure id is not null/undefined before calling the function
+      getLanguage();
+    }
+  }, [openfile]); // Runs whenever `id` changes
+  
 
   return (
     <div className="flex flex-col min-h-screen bg-[#E6E6FA]">
@@ -54,7 +73,7 @@ const LoggedUserCode = () => {
             fullScreen ? "w-full" : "w-3/4"
           }`}
         >
-          <Guest id={openfile} />
+          <Guest id={openfile} mainLanguage={mainLanguage}/>
         </div>
       </div>
     </div>

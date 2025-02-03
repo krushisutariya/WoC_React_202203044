@@ -11,5 +11,6 @@ router.get("/getContent",fileController.getContent)
 router.delete('/deleteFileOrFolder/:id', fileController.deleteFileOrFolder);
 router.post("/executeCode", fileController.executeCode);
 router.put("/updateFileName", fileController.updateFileName);
+router.get("/getLanguage", fileController.getLanguage);
 
 module.exports = router;

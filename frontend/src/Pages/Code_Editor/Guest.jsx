@@ -14,17 +14,17 @@ import { CiImport, CiExport } from "react-icons/ci";
 import { TbTextWrapColumn } from "react-icons/tb";
 import { IoTerminalOutline } from "react-icons/io5";
 
-const Guest = ({ id }) => {
-  const [showChat, setShowChat] = useState(() =>
-    localStorage.getItem("showChat") === "true"
+const Guest = ({ id, mainLanguage }) => {
+  const [showChat, setShowChat] = useState(
+    () => localStorage.getItem("showChat") === "true"
   );
-  
+
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [name, setName] = useState("defaultFile");
-  const [language, setLanguage] = useState("javascript");
-  const [theme, setTheme] = useState("my-dark-theme");
+  const [language, setLanguage] = useState(mainLanguage);
+  const [theme, setTheme] = useState("vs-dark");
   const [input, setInput] = useState(
     "Write your input here or you can drop file here"
   );
@@ -32,7 +32,10 @@ const Guest = ({ id }) => {
   const [dragOver, setDragOver] = useState(false);
   const [fullScreen, setFullscreen] = useState(false);
   const [wrap, setWrap] = useState(false);
-  const { userLoggedIn,url } = useAuth();
+  const { userLoggedIn, url } = useAuth();
+
+  // Store `id` in localStorage when it changes
+ 
 
   const languageversion = {
     javascript: {
@@ -132,8 +135,6 @@ const Guest = ({ id }) => {
   };
 
   useEffect(() => {
-
-   
     if (!id && !userLoggedIn && !content) {
       setContent("console.log('Hellow world');");
     }
@@ -227,16 +228,6 @@ const Guest = ({ id }) => {
     });
   };
 
-  const handleThemeChange = (event) => {
-    const selectedTheme = event.target.value;
-    setTheme(selectedTheme);
-    console.log("Selected theme:", selectedTheme);
-
-    if (monaco && monaco.editor) {
-      monaco.editor.setTheme(selectedTheme);
-    }
-  };
-
   const handleSave = async () => {
     try {
       await axios.put(`${url}/updateFileContent`, {
@@ -258,34 +249,39 @@ const Guest = ({ id }) => {
   };
 
   useEffect(() => {
-    // Load the saved content and language from localStorage if available
-    const savedContent = localStorage.getItem("content");
-    const savedLanguage = localStorage.getItem("language");
-
+    // Save content and language to localStorage when they change
+    localStorage.setItem('content', content);
+    localStorage.setItem('language', language);
+  }, [content, language]);
+  
+  useEffect(() => {
+    // Load content and language from localStorage when the component mounts
+    const savedContent = localStorage.getItem('content');
+    const savedLanguage = localStorage.getItem('language');
+  
     if (savedContent && savedLanguage) {
       setContent(savedContent);
       setLanguage(savedLanguage);
-    } else {
-      // Set default values if no saved data exists
-      setContent(""); // Or any default you prefer
-      setLanguage("javascript");
     }
   }, []);
-
+  
   useEffect(() => {
-    // Save content and language to localStorage whenever they change
-    localStorage.setItem("content", content);
-    localStorage.setItem("language", language);
-  }, [content, language]);
-
-  useEffect(() => {
-    if (monaco) {
-      console.log("Monaco editor is available, setting theme...");
-      registerThemes(); // Ensure themes are registered first
-      monaco.editor.setTheme(theme); // Then apply the selected theme
+    // Save id to localStorage when it changes
+    if (id) {
+      localStorage.setItem('id', id);
     }
-  }, [theme]);
+  }, [id]);
+  
+  useEffect(() => {
+    // If `id` remains the same, set language to `mainLanguage`
+    const currId = localStorage.getItem('id');
+    if (currId === id && mainLanguage) {
+      setLanguage(mainLanguage);
+    }
+  }, [id, mainLanguage]);
 
+  
+  
   useEffect(() => {
     localStorage.setItem("showChat", showChat);
   }, [showChat]);
@@ -365,7 +361,6 @@ const Guest = ({ id }) => {
 
   const runcode = async () => {
     try {
-      
       console.log(language);
       console.log(languageversion[language]?.version);
       console.log(content);
@@ -464,12 +459,14 @@ const Guest = ({ id }) => {
         {/* Right Section - Theme & Enable Wrapping */}
         <div className="flex flex-wrap items-center gap-4">
           {/* Theme Dropdown */}
-        
 
           <select
             className="md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
             value={theme}
-            onChange={(e) => setTheme(e.target.value)}
+            onChange={(e) => {
+              setTheme(e.target.value);
+              localStorage.setItem("savedTheme", e.target.value);
+            }}
           >
             <option value="vs-dark">Dark Theme</option>
             <option value="vs-light">Light Theme</option>
@@ -541,7 +538,10 @@ const Guest = ({ id }) => {
       {!fullScreen && (
         <div className="grid grid-cols-2 h-[25vh] box-border gap-2 bg-gray-800 border-gray-700 ">
           {/* Input Section */}
-          <div className="flex flex-col p-4  border-4 border-gray-700" style={{ scrollbarWidth: "none", overflow: "auto" }}>
+          <div
+            className="flex flex-col p-4  border-4 border-gray-700"
+            style={{ scrollbarWidth: "none", overflow: "auto" }}
+          >
             {/* Header */}
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-lg font-semibold text-white">Input</h2>
@@ -578,7 +578,10 @@ const Guest = ({ id }) => {
           </div>
 
           {/* Output Section */}
-          <div className="flex flex-col p-4  border-4 border-gray-700" style={{ scrollbarWidth: "none", overflow: "auto" }}>
+          <div
+            className="flex flex-col p-4  border-4 border-gray-700"
+            style={{ scrollbarWidth: "none", overflow: "auto" }}
+          >
             {/* Header */}
             <div className="flex justify-between items-center mb-2 ">
               <h2 className="text-lg font-semibold text-white">Output</h2>
@@ -591,7 +594,10 @@ const Guest = ({ id }) => {
             </div>
 
             {/* Output Container */}
-            <div className="h-full p-3 bg-gray-900 text-white rounded-lg border border-gray-00 " style={{ scrollbarWidth: "none", overflow: "auto" }}>
+            <div
+              className="h-full p-3 bg-gray-900 text-white rounded-lg border border-gray-00 "
+              style={{ scrollbarWidth: "none", overflow: "auto" }}
+            >
               <pre className="whitespace-pre-wrap ">
                 {loading ? "Running..." : output}
               </pre>
