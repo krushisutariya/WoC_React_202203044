@@ -28,8 +28,6 @@ const TreeNode = ({
   userId,
   setFileStructure,
 }) => {
-  
-
   const languageversion = {
     javascript: {
       version: "18.15.0",
@@ -136,13 +134,16 @@ const TreeNode = ({
       icon: <FaCuttlefish style={{ color: "#89E051" }} />, // Shell Green
     },
   };
-  
 
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    const expandedFolders =
+      JSON.parse(localStorage.getItem("expandedFolders")) || {};
+    return expandedFolders[node._id] || false;
+  });
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const [showEditPopup, setShowEditPopup]= useState(false);
-  const [name,setName]=useState("");
-  const [selectedLanguage,setSelectedLanguage]=useState("javascript");
+  const [showEditPopup, setShowEditPopup] = useState(false);
+  const [name, setName] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const isFile = !node.isFolder;
   const language = node.language?.toLowerCase();
   const icon =
@@ -152,9 +153,6 @@ const TreeNode = ({
       <FaFile />
     );
 
-
-
-
   const {
     rootId,
     setrootId,
@@ -163,6 +161,7 @@ const TreeNode = ({
     setRefreshTrigger,
     openfile,
     setOpenFile,
+    url,
   } = useAuth();
 
   useEffect(() => {
@@ -196,20 +195,35 @@ const TreeNode = ({
     return root;
   };
 
-  const toggleExpand = () => setIsExpanded(!isExpanded);
-  
+  const toggleExpand = () => {
+    setIsExpanded((prev) => {
+      const newExpandedState = !prev;
+
+      // Store the updated state in localStorage
+      const expandedFolders =
+        JSON.parse(localStorage.getItem("expandedFolders")) || {};
+      expandedFolders[node._id] = newExpandedState;
+      localStorage.setItem("expandedFolders", JSON.stringify(expandedFolders));
+
+      return newExpandedState;
+    });
+  };
+
   const handleRename = async () => {
     setRefreshTrigger((prev) => !prev);
-       
+
     try {
-      await axios.put("http://localhost:3001/file/updateFileName", {
+      await axios.put(`${url}/updateFileName`, {
         id: node._id,
         name: name,
         parent: node.parent,
         language: selectedLanguage,
       });
-  
+
       toast.success("File renamed successfully!");
+      if (openfile === node._id) {
+        setOpenFile(node._id);
+      }
       setShowEditPopup(false);
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -224,29 +238,19 @@ const TreeNode = ({
       }
     }
   };
-  
-
-
-
 
   const handleDelete = async () => {
-  
     setRefreshTrigger((prev) => !prev);
     try {
       console.log("Deleting file with ID:", node._id); // Debugging log
 
       // Wait for the delete operation to complete first
-      await axios.delete(
-        `http://localhost:3001/file/deleteFileOrFolder/${node._id}`
-      );
+      await axios.delete(`${url}/deleteFileOrFolder/${node._id}`);
 
       // Only after delete is done, call getFileStructure
-      const response = await axios.get(
-        "http://localhost:3001/file/getFileStructure",
-        {
-          params: { userId },
-        }
-      );
+      const response = await axios.get(`${url}/getFileStructure`, {
+        params: { userId },
+      });
 
       // Update the UI based on the response data
       onDeleteItem(node._id); // Update UI
@@ -291,10 +295,13 @@ const TreeNode = ({
 
   // Corrected renderEditeButton function
   const renderEditButton = () => {
-    if (!node.isFolder&& node._id !== defaultId) {
+    if (!node.isFolder && node._id !== defaultId) {
       return (
         <button
-        onClick={()=>{setShowEditPopup(true)}}>
+          onClick={() => {
+            setShowEditPopup(true);
+          }}
+        >
           <FaEdit className="text-2xl text-gray-300" />
         </button>
       );
@@ -303,112 +310,110 @@ const TreeNode = ({
   };
 
   return (
-  <div className="ml-4">
-  <div className="flex items-center justify-between w-full">
-    
-    {/* Left Section: Icon and Name */}
-    <div className="flex items-center space-x-2 cursor-pointer" onClick={toggleExpand}>
-      {node.isFolder ? (
-        isExpanded ? (
-          <FaRegFolderOpen className="text-yellow-500 text-2xl" />
-        ) : (
-          <FaRegFolder className="text-yellow-500 text-2xl" />
-        )
-      ) : (
-
-        
+    <div className="ml-4">
+      <div className="flex items-center justify-between w-full">
+        {/* Left Section: Icon and Name */}
         <div
-          className="text-2xl"
-          onClick={() => {
-            console.log(node.name);
-            setOpenFile((prev) => {
-              return node._id;
-            });
-          }}
+          className="flex items-center space-x-2 cursor-pointer"
+          onClick={toggleExpand}
         >
-          {icon}
+          {node.isFolder ? (
+            isExpanded ? (
+              <FaRegFolderOpen className="text-yellow-500 text-2xl" />
+            ) : (
+              <FaRegFolder className="text-yellow-500 text-2xl" />
+            )
+          ) : (
+            <div
+              className="text-2xl"
+              onClick={() => {
+                setOpenFile((prev) => {
+                  return node._id;
+                });
+              }}
+            >
+              {icon}
+            </div>
+          )}
+          {node.isFolder && (
+            <span className="font-bold text-white m-2">{node.name}</span>
+          )}
+          {!node.isFolder && (
+            <span
+              className="font-bold text-white m-2"
+              onClick={() => {
+                setOpenFile((prev) => {
+                  return node._id;
+                });
+              }}
+            >
+              {node.name}
+            </span>
+          )}
         </div>
-      )}
-      {node.isFolder&&
-      <span className="font-bold text-white m-2"  
-      onClick={() => {
-        console.log(node.name);
-        setOpenFile((prev) => {
-          return node._id;
-        });
-      }}>{node.name}</span>
-      }
-      {!node.isFolder&&
-       <span className="font-bold text-white m-2">{node.name}</span>
-      }
-    </div>
 
-    {/* Right Section: Buttons */}
-    <div className="flex items-center space-x-2">
-      {renderAddButton()}
-      {renderDeleteButton()}
-      {renderEditButton()}
-    </div>
-  </div>
-
-  
-
+        {/* Right Section: Buttons */}
+        <div className="flex items-center space-x-2">
+          {renderAddButton()}
+          {renderDeleteButton()}
+          {renderEditButton()}
+        </div>
+      </div>
 
       {/* Show Delete Confirmation Popup */}
 
-      {showEditPopup&&(
+      {showEditPopup && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-500 bg-opacity-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-          <h2 className="text-xl font-semibold mb-4">Rename File</h2>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">File Name:</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-              placeholder="Enter new file name"
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Language:</label>
-            <select
-              value={selectedLanguage}
-              onChange={(e) => setSelectedLanguage(e.target.value)}
-              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
-            >
-              {Object.keys(languageversion).map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang.charAt(0).toUpperCase() + lang.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-xl font-semibold mb-4">Rename File</h2>
 
-          <div className="flex justify-between">
-            <button
-              onClick={() => setShowEditPopup(false)}
-              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 text-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleRename}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Rename
-            </button>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                File Name:
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+                placeholder="Enter new file name"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Language:
+              </label>
+              <select
+                value={selectedLanguage}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+                className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              >
+                {Object.keys(languageversion).map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-between">
+              <button
+                onClick={() => setShowEditPopup(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRename}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Rename
+              </button>
+            </div>
           </div>
         </div>
-      </div>
       )}
-
-
-
-
-
 
       {showDeletePopup && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
@@ -438,8 +443,7 @@ const TreeNode = ({
       {isExpanded && node.children && node.children.length > 0 && (
         <div className="ml-6">
           {node.children.map((child) => (
-            <TreeNode 
-
+            <TreeNode
               key={child._id}
               node={child}
               onAddNewItem={onAddNewItem}

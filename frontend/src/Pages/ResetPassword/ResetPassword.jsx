@@ -6,7 +6,7 @@ import Navbar from "../../Components/NavBar";
 import Footer from "../../Components/Footer";
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
-  const { email } = useAuth();
+  const { url,email } = useAuth();
 
   const validatePassword = (password) => {
     const regex =
@@ -25,13 +25,13 @@ const ResetPassword = () => {
 
     
     axios
-      .post("http://localhost:3001/api/resetpassword", {
+      .post(`${url}/resetpassword`, {
         // Corrected the API endpoint
         email: email,
         newPassword: password,
       })
       .then((response) => {
-        console.log("Password changed successfully:", response.data.message);
+        
         toast.success("Password changed successfully!");
       })
       .catch((error) => {

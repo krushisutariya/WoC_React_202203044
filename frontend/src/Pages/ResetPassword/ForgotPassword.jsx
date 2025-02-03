@@ -10,7 +10,7 @@ const ForgotPassword = () => {
   const { email, setEmail, setOtp} = useAuth();
   const navigate = useNavigate();
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
-
+ const {url} =useAuth();
   function generateOTP() {
     return Math.floor(1000 + Math.random() * 9000).toString(); 
   }
@@ -30,7 +30,7 @@ const ForgotPassword = () => {
     console.log("Generated OTP:", newOTP);
   
     axios
-      .post("http://localhost:3001/api/send_recovery_email", {
+      .post(`${url}/send_recovery_email`, {
         recipient_email: email,
         OTP: newOTP,
       })

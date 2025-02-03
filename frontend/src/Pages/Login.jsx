@@ -16,7 +16,7 @@ const Login = () => {
   });
 
 
-  const { userLoggedIn, setuserLoggedIn ,setEmail} = useAuth();
+  const { url,userLoggedIn, setuserLoggedIn ,setEmail} = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(
     localStorage.getItem("email") ? true : false
@@ -42,7 +42,7 @@ const Login = () => {
     event.preventDefault();
 
     try {
-      const result = await axios.post("http://localhost:3001/api/login", {
+      const result = await axios.post(`${url}/login`, {
         email: formData.email,
         password: formData.password,
       });

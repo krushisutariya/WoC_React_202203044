@@ -13,7 +13,7 @@ import {useAuth} from "../Context/AuthContext"
 import axios from "axios";
 const SignUp = () => {
   const navigate = useNavigate();
-  const {userLoggedIn, setuserLoggedIn,setEmail} = useAuth();
+  const {url,userLoggedIn, setuserLoggedIn,setEmail} = useAuth();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -53,7 +53,7 @@ const submitHandler = async (event) => {
   }
 
   try {
-    const response = await axios.post("http://localhost:3001/api/register", {
+    const response = await axios.post(`${url}/register`, {
       username: formData.username,
       email: formData.email,
       password: formData.password,

@@ -24,15 +24,7 @@ const AiChatBot = ({ showChat, setShowChat }) => {
     }
   }, []);
 
-  // Save showChat and conversation state to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem("showChat", JSON.stringify(showChat));
-  }, [showChat]);
-
-  useEffect(() => {
-    localStorage.setItem("conversation", JSON.stringify(conversation));
-  }, [conversation]);
-
+  
   const hideAi = () => {
     setShowChat(false); // Only close the chat
   };

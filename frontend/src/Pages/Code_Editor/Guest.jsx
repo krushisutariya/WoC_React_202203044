@@ -15,12 +15,14 @@ import { TbTextWrapColumn } from "react-icons/tb";
 import { IoTerminalOutline } from "react-icons/io5";
 
 const Guest = ({ id }) => {
-  const themeOptions = Object.keys(THEMES);
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(() =>
+    localStorage.getItem("showChat") === "true"
+  );
+  
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [name, setName] = useState(null);
+  const [name, setName] = useState("defaultFile");
   const [language, setLanguage] = useState("javascript");
   const [theme, setTheme] = useState("my-dark-theme");
   const [input, setInput] = useState(
@@ -30,7 +32,7 @@ const Guest = ({ id }) => {
   const [dragOver, setDragOver] = useState(false);
   const [fullScreen, setFullscreen] = useState(false);
   const [wrap, setWrap] = useState(false);
-  const { userLoggedIn } = useAuth();
+  const { userLoggedIn,url } = useAuth();
 
   const languageversion = {
     javascript: {
@@ -130,6 +132,8 @@ const Guest = ({ id }) => {
   };
 
   useEffect(() => {
+
+   
     if (!id && !userLoggedIn && !content) {
       setContent("console.log('Hellow world');");
     }
@@ -143,7 +147,7 @@ const Guest = ({ id }) => {
         try {
           setLoading(true);
           setError(null);
-          const res = await axios.get("http://localhost:3001/file/getContent", {
+          const res = await axios.get(`${url}/getContent`, {
             params: { id },
           });
           console.log(res.data);
@@ -218,9 +222,8 @@ const Guest = ({ id }) => {
 
   const toggleChat = () => {
     setShowChat((prev) => {
-      const newValue = !prev;
-      localStorage.setItem("showChat", JSON.stringify(newValue));
-      return newValue;
+      localStorage.setItem("showChat", !prev);
+      return !prev;
     });
   };
 
@@ -236,7 +239,7 @@ const Guest = ({ id }) => {
 
   const handleSave = async () => {
     try {
-      await axios.put("http://localhost:3001/file/updateFileContent", {
+      await axios.put(`${url}/updateFileContent`, {
         id,
         language,
         content,
@@ -282,6 +285,10 @@ const Guest = ({ id }) => {
       monaco.editor.setTheme(theme); // Then apply the selected theme
     }
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("showChat", showChat);
+  }, [showChat]);
 
   const handleCodeFileUpload = (event) => {
     const file = event.target.files[0];
@@ -358,13 +365,13 @@ const Guest = ({ id }) => {
 
   const runcode = async () => {
     try {
-      console.log("this is frontend");
+      
       console.log(language);
       console.log(languageversion[language]?.version);
       console.log(content);
       console.log(input);
 
-      const response = await fetch("http://localhost:3001/file/executeCode", {
+      const response = await fetch(`${url}/executeCode`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

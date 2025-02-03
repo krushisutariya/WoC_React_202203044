@@ -15,6 +15,7 @@ const FileStore = ({ email }) => {
   const [fileStructure, setFileStructure] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uid, setUid] = useState(null);
+  const {url} =useAuth();
   const languageversion = {
     javascript: {
       version: "18.15.0",
@@ -173,7 +174,7 @@ const FileStore = ({ email }) => {
     const fetchUserIdAndFileStructure = async () => {
       try {
         const userResponse = await axios.get(
-          "http://localhost:3001/api/getUserIdByEmail",
+          `${url}/getUserIdByEmail`,
           {
             params: { email },
           }
@@ -188,7 +189,7 @@ const FileStore = ({ email }) => {
         }
 
         const fileResponse = await axios.get(
-          "http://localhost:3001/file/getFileStructure",
+          `${url}/getFileStructure`,
           {
             params: { userId },
           }
@@ -245,7 +246,7 @@ const FileStore = ({ email }) => {
     if (!newItemName.trim()) return toast.error("Name cannot be empty!");
 
     const userResponse = await axios.get(
-      "http://localhost:3001/api/getUserIdByEmail",
+      `${url}/getUserIdByEmail`,
       {
         params: { email },
       }
@@ -263,7 +264,7 @@ const FileStore = ({ email }) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3001/file/addFileOrFolder",
+        `${url}/addFileOrFolder`,
         newItem
       );
       const newEntry = response.data.newEntry;

@@ -13,6 +13,7 @@ const LoggedUserCode = () => {
   const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
+  
     if (!openfile) setOpenFile(defaultId);
     const savedChatVisibility = localStorage.getItem("showChat");
     setShowChat(savedChatVisibility ? JSON.parse(savedChatVisibility) : false);

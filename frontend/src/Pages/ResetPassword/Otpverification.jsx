@@ -23,7 +23,7 @@ const OtpVerification = () => {
     if (OTPinput.join("") === otp) {
       navigate("/resetpassword");
     } else {
-      alert("The OTP entered is incorrect. Please try again.");
+      toast.error("The OTP entered is incorrect. Please try again.");
     }
   };
 
