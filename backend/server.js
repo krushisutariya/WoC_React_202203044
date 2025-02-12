@@ -12,9 +12,12 @@ connectDB();
 const app = express();
 app.use(express.json()); 
 app.use(cors({
-  origin: "https://code-ide-frontend.onrender.com",  // Your frontend URL
+  origin: [
+    "https://code-ide-frontend.onrender.com", 
+    "http://localhost:5173"                   
+  ],
   methods: "GET, POST, PUT, DELETE",
-  credentials: true,  // If using cookies or authentication
+  credentials: true,
 }));
 app.use(express.urlencoded({ extended: true }));
 

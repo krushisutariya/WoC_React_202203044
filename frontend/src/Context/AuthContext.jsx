@@ -7,11 +7,12 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
 
   
+  // const url=`https://localhost:3001`;
   const url=`https://code-ide-backend-5yjb.onrender.com`;
-  // Initialize state from localStorage or set default values
+
   const [userLoggedIn, setuserLoggedIn] = useState(() => {
     const savedUser = localStorage.getItem("userLoggedIn");
-    return savedUser === "true"; // Convert string to boolean
+    return savedUser === "true";
   });
   const [email, setEmail] = useState(() => localStorage.getItem("email") || "");
   const [otp, setOtp] = useState(() => localStorage.getItem("otp") || "");

@@ -29,6 +29,10 @@ const Login = () => {
     }));
   };
 
+  useEffect(()=>{
+    console.log("hi");
+    console.log(url);
+  },[]);
   useEffect(() => {
     if (localStorage.getItem("email")) {
       setFormData((prev) => ({
@@ -40,7 +44,8 @@ const Login = () => {
 
   const submitHandler = async (event) => {
     event.preventDefault();
-
+    
+    console.log("clicked")
     try {
       const result = await axios.post(`${url}/login`, {
         email: formData.email,
