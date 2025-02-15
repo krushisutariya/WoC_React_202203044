@@ -9,7 +9,6 @@ import Footer from "../Components/Footer.jsx";
 import Navbar from "../Components/NavBar.jsx";
 import {useAuth} from "../Context/AuthContext"
 
-
 import axios from "axios";
 const SignUp = () => {
   const navigate = useNavigate();
@@ -70,7 +69,7 @@ const submitHandler = async (event) => {
       toast.error("There was an issue creating your default file.");
     } else {
       setErrorMessage(response.data.message);
-      toast.error("User already registered with this email."); // Handle custom backend messages
+      toast.error("User already registered with this email.");
     }
   } catch (error) {
     console.error("Error while creating account:", error);

@@ -1,9 +1,9 @@
 const CoderModel = require("../Models/Coders");
 const UserFile = require('../Models/UserFile');
-
-
+const {oauth2client}= require("../utils/googleConfig")
+const axios=require('axios');
 const nodemailer = require("nodemailer");
-
+const jwt=require('jsonwebtoken')
 
 const defaultFileStructure = {
   name: "Root",
@@ -17,6 +17,77 @@ const defaultFileStructure = {
     },
   ],
 };
+
+
+
+
+const googleLogin= async (req,res)=>{
+  try{
+    const {code}=req.query;
+    const googleRes= await oauth2client.getToken(code);
+    oauth2client.setCredentials(googleRes.token);
+
+    const userRes= await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.token.access_token}`
+    )
+    const {email,name,picture}=userRes.data;
+    let user=await CoderModel.findOne({email});
+
+    if(!user)
+    {
+      user=await CoderModel.create({username:name , email, password:name});
+      const rootFolder = new UserFile({
+        name: defaultFileStructure.name,
+        isFolder: defaultFileStructure.isFolder,
+        owner: newUser._id,
+        parent: null, // Root folder has no parent
+      });
+  
+      await rootFolder.save();
+  
+      // Add the default file to the root folder
+      const defaultFile = new UserFile({
+        name: defaultFileStructure.children[0].name,
+        isFolder: defaultFileStructure.children[0].isFolder,
+        content: defaultFileStructure.children[0].content,
+        owner: newUser._id,
+        parent: rootFolder._id,
+        language: defaultFileStructure.children[0].language // Set the root folder as the parent
+      });
+  
+      await defaultFile.save();
+  
+      // Add the default file's reference to the root folder's `children` array
+      rootFolder.children.push(defaultFile._id);
+      await rootFolder.save();
+    }
+
+    const {_id}=user;
+    const token=jwt.sign({_id,email},
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_TIMEOUT
+      }
+    );
+
+    return res.status(200).json({
+      message: 'Success',
+      token,
+      user
+    })
+  }
+  catch(error)
+  {
+     res.status(500).json({
+      message: 'Internal server Error'
+     })
+  }
+}
+
+
+
+
+
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -67,6 +138,8 @@ const register = async (req, res) => {
     res.status(500).json({ message: "An error occurred.", error: err });
   }
 };
+
+
 
 const login = (req, res) => {
   const { email, password } = req.body;
@@ -138,6 +211,8 @@ const sendEmail = ({ recipient_email, OTP }) => {
   });
 };
 
+
+
 const sendRecoveryEmail = (req, res) => {
   const { recipient_email, OTP } = req.body;
 
@@ -197,5 +272,6 @@ module.exports = {
   sendRecoveryEmail,
   resetPassword,
   getUserIdByEmail,
+  googleLogin
 };
 

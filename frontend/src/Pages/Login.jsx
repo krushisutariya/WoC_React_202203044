@@ -7,6 +7,9 @@ import Navbar from "../Components/NavBar.jsx";
 import wel_come_back from "../assets/wel_come_back.png";
 import axios from "axios";
 import { useAuth } from "../Context/AuthContext";
+import { useGoogleLogin } from '@react-oauth/google';
+  
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,6 +19,43 @@ const Login = () => {
   });
 
 
+  const responseGoogle= async (authResult)=>{
+    try{
+      if(authResult['code'])
+      {
+        const result=await googleAuth(authResult['code']);
+        const {email,name,image}=result.data.user;
+        console.log()
+      }
+    }
+    catch(error)
+    {
+
+    }
+  }
+  const googleLogin = useGoogleLogin({
+    flow: "auth-code",
+    onSuccess: async (response) => {
+      try {
+        const res = await axios.post(`${url}/googleLogin`, {
+          code: response.code,
+        });
+
+        if (res.data.message === "Success") {
+          toast.success("Google Login Successful!");
+          setuserLoggedIn(true);
+          navigate("/loggeduser", { state: { email: res.data.user.email } });
+        } else {
+          toast.error("Google Login Failed");
+        }
+      } catch (error) {
+        toast.error("Google Login Error");
+      }
+    },
+    onError: () => {
+      toast.error("Google Login Failed");
+    },
+  });
   const { url,userLoggedIn, setuserLoggedIn ,setEmail} = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(
@@ -157,6 +197,9 @@ const Login = () => {
                   Sign Up
                 </Link>
               </p>
+              <button type="button" onClick={() => googleLogin()} className="w-full py-2 bg-red-500 text-white">
+                Sign in with Google
+              </button>
             </form>
           </div>
           <div className="hidden md:block md:w-1/2 p-8 animate-slide-in-right">
