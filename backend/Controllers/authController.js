@@ -1,9 +1,10 @@
 const CoderModel = require("../Models/Coders");
-const UserFile = require('../Models/UserFile');
-const {oauth2client}= require("../utils/googleConfig")
-const axios=require('axios');
+const UserFile = require("../Models/UserFile");
+const axios = require("axios");
 const nodemailer = require("nodemailer");
-const jwt=require('jsonwebtoken')
+const jwt = require("jsonwebtoken");
+const { google } = require("googleapis");
+
 
 const defaultFileStructure = {
   name: "Root",
@@ -13,76 +14,108 @@ const defaultFileStructure = {
       name: "defaultFile",
       isFolder: false,
       content: "console.log('hello, world')",
-      language: "javascript"
+      language: "javascript",
     },
   ],
 };
 
 
+const REDIRECT_URI =
+  process.env.NODE_ENV === "production"
+    ? "https://code-ide-frontend.onrender.com"
+    : "http://localhost:5173";
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  REDIRECT_URI
+);
 
 
-const googleLogin= async (req,res)=>{
-  try{
-    const {code}=req.query;
-    const googleRes= await oauth2client.getToken(code);
-    oauth2client.setCredentials(googleRes.token);
+exports.oauth2Client = oauth2Client;
 
-    const userRes= await axios.get(
-      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.token.access_token}`
-    )
-    const {email,name,picture}=userRes.data;
-    let user=await CoderModel.findOne({email});
+const googleLogin = async (req, res) => {
+  try {
+    const { code } = req.body; 
+    if (!code) {
+      console.error("Error: Code not received from frontend");
+      return res.status(400).json({ message: "Code is required" });
+    }
 
-    if(!user)
-    {
-      user=await CoderModel.create({username:name , email, password:name});
+    console.log("Received code from frontend:", code); 
+    
+      console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
+      console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
+  
+      const { tokens } = await oauth2Client.getToken(code);
+  
+      console.log("Google OAuth Tokens:", tokens);
+  
+    oauth2Client.setCredentials(tokens);
+    console.log("88888")
+    // Fetch user details from Google
+    const userRes = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo?alt=json", {
+      headers: {
+        Authorization: `Bearer ${tokens.access_token}`,
+      },
+    });
+    
+
+    console.log("Google User Data:", userRes.data); // Debug log
+
+    const { email, name, picture } = userRes.data;
+    let user = await CoderModel.findOne({ email });
+
+    // Create a new user if not found
+    if (!user) {
+      user = await CoderModel.create({ username: name, email, password: name });
+
       const rootFolder = new UserFile({
         name: defaultFileStructure.name,
         isFolder: defaultFileStructure.isFolder,
-        owner: newUser._id,
-        parent: null, // Root folder has no parent
+        owner: user._id,
+        parent: null,
       });
-  
+
       await rootFolder.save();
-  
-      // Add the default file to the root folder
+
       const defaultFile = new UserFile({
         name: defaultFileStructure.children[0].name,
         isFolder: defaultFileStructure.children[0].isFolder,
         content: defaultFileStructure.children[0].content,
-        owner: newUser._id,
+        owner: user._id,
         parent: rootFolder._id,
-        language: defaultFileStructure.children[0].language // Set the root folder as the parent
+        language: defaultFileStructure.children[0].language,
       });
-  
+
       await defaultFile.save();
-  
-      // Add the default file's reference to the root folder's `children` array
+
       rootFolder.children.push(defaultFile._id);
       await rootFolder.save();
     }
 
-    const {_id}=user;
-    const token=jwt.sign({_id,email},
-      process.env.JWT_SECRET,
-      {
-        expiresIn: process.env.JWT_TIMEOUT
-      }
-    );
+    // Generate JWT token
+    const { _id } = user;
+    const token = jwt.sign({ _id, email }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_TIMEOUT,
+    });
+
+    console.log("Generated JWT Token:", token); // Debug log
 
     return res.status(200).json({
-      message: 'Success',
+      message: "Success",
       token,
-      user
-    })
+      user,
+    });
+  } catch (error) {
+    console.error("Google Login Error:", error?.response?.data || error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error?.message || "Unknown error",
+    });
   }
-  catch(error)
-  {
-     res.status(500).json({
-      message: 'Internal server Error'
-     })
-  }
-}
+};
+
 
 
 
@@ -97,7 +130,6 @@ const register = async (req, res) => {
     const existingUser = await CoderModel.findOne({ email });
     console.log(existingUser);
     if (existingUser) {
-     
       return res.json({ message: "User already registered with this email." });
     }
 
@@ -121,7 +153,7 @@ const register = async (req, res) => {
       content: defaultFileStructure.children[0].content,
       owner: newUser._id,
       parent: rootFolder._id,
-      language: defaultFileStructure.children[0].language // Set the root folder as the parent
+      language: defaultFileStructure.children[0].language, // Set the root folder as the parent
     });
 
     await defaultFile.save();
@@ -131,7 +163,8 @@ const register = async (req, res) => {
     await rootFolder.save();
 
     res.json({
-      message: "User registered successfully, and default file structure created.",
+      message:
+        "User registered successfully, and default file structure created.",
       user: newUser,
     });
   } catch (err) {
@@ -139,22 +172,19 @@ const register = async (req, res) => {
   }
 };
 
-
-
 const login = (req, res) => {
   const { email, password } = req.body;
-  CoderModel.findOne({ email: email })
-    .then((user) => {
-      if (user) {
-        if (user.password === password) {
-          res.json("Success");
-        } else {
-          res.json("Wrong Password");
-        }
+  CoderModel.findOne({ email: email }).then((user) => {
+    if (user) {
+      if (user.password === password) {
+        res.json("Success");
       } else {
-        res.json("No user Found, please register first");
+        res.json("Wrong Password");
       }
-    });
+    } else {
+      res.json("No user Found, please register first");
+    }
+  });
 };
 
 const sendEmail = ({ recipient_email, OTP }) => {
@@ -211,8 +241,6 @@ const sendEmail = ({ recipient_email, OTP }) => {
   });
 };
 
-
-
 const sendRecoveryEmail = (req, res) => {
   const { recipient_email, OTP } = req.body;
 
@@ -237,15 +265,16 @@ const resetPassword = async (req, res) => {
     await user.save();
     res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
-    res.status(500).json({ message: "An error occurred while resetting the password" });
+    res
+      .status(500)
+      .json({ message: "An error occurred while resetting the password" });
   }
 };
-
 
 const getUserIdByEmail = async (req, res) => {
   try {
     const { email } = req.query; // Get email from query parameters
-   
+
     console.log(email);
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
@@ -256,8 +285,6 @@ const getUserIdByEmail = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-   
-    
 
     res.json({ userId: user._id });
   } catch (error) {
@@ -272,6 +299,5 @@ module.exports = {
   sendRecoveryEmail,
   resetPassword,
   getUserIdByEmail,
-  googleLogin
+  googleLogin,
 };
-

@@ -18,44 +18,41 @@ const Login = () => {
     password: "",
   });
 
+  const redirectUri =
+  process.env.NODE_ENV === "production"
+    ? "https://code-ide-frontend.onrender.com"
+    : "http://localhost:5173";
 
-  const responseGoogle= async (authResult)=>{
-    try{
-      if(authResult['code'])
-      {
-        const result=await googleAuth(authResult['code']);
-        const {email,name,image}=result.data.user;
-        console.log()
+const googleLogin = useGoogleLogin({
+  clientId: import.meta.env.VITE_GOOGLE_AUTH_API_KEY,
+  flow: "code",
+  redirect_uri: redirectUri, 
+  
+  onSuccess: async (response) => {
+    console.log(import.meta.env.VITE_GOOGLE_AUTH_API_KEY);
+    try {
+      const res = await axios.post(`http://localhost:3001/googleLogin`, { code: response.code }, { headers: { 'Content-Type': 'application/json' } });
+
+      if (res.data.message === "Success") {
+        toast.success("Google Login Successful!");
+        setuserLoggedIn(true);
+        navigate("/loggeduser", { state: { email: res.data.user.email } });
+      } else {
+        toast.error("Google Login Failed");
       }
+    } catch (error) {
+      toast.error("Google Login Error");
     }
-    catch(error)
-    {
+  },
+  onError: () => {
+    toast.error("Google Login Failed");
+  },
+});
+  
+  
+ 
 
-    }
-  }
-  const googleLogin = useGoogleLogin({
-    flow: "auth-code",
-    onSuccess: async (response) => {
-      try {
-        const res = await axios.post(`${url}/googleLogin`, {
-          code: response.code,
-        });
 
-        if (res.data.message === "Success") {
-          toast.success("Google Login Successful!");
-          setuserLoggedIn(true);
-          navigate("/loggeduser", { state: { email: res.data.user.email } });
-        } else {
-          toast.error("Google Login Failed");
-        }
-      } catch (error) {
-        toast.error("Google Login Error");
-      }
-    },
-    onError: () => {
-      toast.error("Google Login Failed");
-    },
-  });
   const { url,userLoggedIn, setuserLoggedIn ,setEmail} = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(

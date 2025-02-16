@@ -19,12 +19,18 @@ const Guest = ({ id, mainLanguage }) => {
     () => localStorage.getItem("showChat") === "true"
   );
 
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(()=>{
+    return localStorage.getItem("editorContent") || "console.log('Hello world');";
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [name, setName] = useState("defaultFile");
-  const [language, setLanguage] = useState(mainLanguage);
-  const [theme, setTheme] = useState("vs-dark");
+  const [language, setLanguage] = useState(()=>{
+    return localStorage.getItem("selectedLanguage") || mainLanguage;
+  });
+  const [theme, setTheme] = useState(()=>{
+    return localStorage.getItem("selectedTheme") || "vs-dark";
+  });
   const [input, setInput] = useState(
     "Write your input here or you can drop file here"
   );
@@ -134,10 +140,15 @@ const Guest = ({ id, mainLanguage }) => {
     },
   };
 
+
   useEffect(() => {
-    if (!id && !userLoggedIn && !content) {
-      setContent("console.log('Hellow world');");
+    if (!userLoggedIn) {
+      localStorage.setItem("editorContent", content);
     }
+  }, [content, userLoggedIn]);
+
+  useEffect(() => {
+    
 
     if (!id) {
       return;
@@ -209,7 +220,7 @@ const Guest = ({ id, mainLanguage }) => {
   };
 
   const handleDownload = () => {
-    // Create a Blob from the output content
+    
     const blob = new Blob([output], { type: "text/plain;charset=utf-8" });
 
     // Create a link element
@@ -246,16 +257,19 @@ const Guest = ({ id, mainLanguage }) => {
   const handleLanguageChange = (event) => {
     setContent(languageversion[event.target.value].default);
     setLanguage(event.target.value);
+    console.log(userLoggedIn);
+    console.log(event.target.value);
+    if (!userLoggedIn) {
+      localStorage.setItem("selectedLanguage",event.target.value );
+    }
   };
 
   useEffect(() => {
-    // Save content and language to localStorage when they change
     localStorage.setItem('content', content);
     localStorage.setItem('language', language);
   }, [content, language]);
   
   useEffect(() => {
-    // Load content and language from localStorage when the component mounts
     const savedContent = localStorage.getItem('content');
     const savedLanguage = localStorage.getItem('language');
   
@@ -391,6 +405,20 @@ const Guest = ({ id, mainLanguage }) => {
     }
   };
 
+
+  useEffect(() => {
+    if (!userLoggedIn) {
+      localStorage.setItem("selectedLanguage", language);
+    }
+  }, [language, userLoggedIn]);
+
+
+  useEffect(() => {
+    if (!userLoggedIn) {
+      localStorage.setItem("selectedTheme", theme);
+    }
+  }, [theme, userLoggedIn]);
+
   return (
     <div
       className={`grid grid-rows-[auto_auto_1fr_auto] grid-cols-1 w-full box-border bg-[#E6E6FA] max-h-[70%]`}
@@ -465,7 +493,7 @@ const Guest = ({ id, mainLanguage }) => {
             value={theme}
             onChange={(e) => {
               setTheme(e.target.value);
-              localStorage.setItem("savedTheme", e.target.value);
+              localStorage.setItem("selectedTheme", e.target.value);
             }}
           >
             <option value="vs-dark">Dark Theme</option>

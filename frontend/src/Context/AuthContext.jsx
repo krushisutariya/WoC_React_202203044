@@ -7,8 +7,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
 
   
-  // const url=`https://localhost:3001`;
-  const url=`https://code-ide-backend-5yjb.onrender.com`;
+   const url=`http://localhost:3001`;
+  //const url=`https://code-ide-backend-5yjb.onrender.com`;
 
   const [userLoggedIn, setuserLoggedIn] = useState(() => {
     const savedUser = localStorage.getItem("userLoggedIn");
