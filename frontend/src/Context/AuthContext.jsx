@@ -12,8 +12,8 @@ export const AuthProvider = ({ children }) => {
   //   ? import.meta.env.VITE_API_URL_PROD
   //   : import.meta.env.VITE_API_URL_DEV;
 
-  const url="http://localhost:3001";
-
+  //const url="http://localhost:3001";
+  const url ="https://code-ide-backend-5yjb.onrender.com"
   const [userLoggedIn, setuserLoggedIn] = useState(() => {
     const savedUser = localStorage.getItem("userLoggedIn");
     return savedUser === "true";
