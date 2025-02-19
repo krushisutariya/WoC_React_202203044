@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, CSSProperties  } from "react";
 import axios from "axios";
 import TreeNode from "./TreeNode";
 import { useAuth } from "../../Context/AuthContext";
@@ -9,13 +9,28 @@ import { FaCuttlefish } from "react-icons/fa";
 import { FaGoogle } from "react-icons/fa6";
 import { SiKotlin } from "react-icons/si";
 import { SiRuby } from "react-icons/si";
-
+import ClipLoader from "react-spinners/ClipLoader";
+import Spinner from 'react-bootstrap/Spinner';
 
 const FileStore = ({ email }) => {
   const [fileStructure, setFileStructure] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uid, setUid] = useState(null);
   const {url} =useAuth();
+
+
+  
+
+
+
+
+  const override = {
+    display: "block",
+    margin: "0 auto",
+    borderColor: "#D8BFD8",
+  };
+
+  
   const languageversion = {
     javascript: {
       version: "18.15.0",
@@ -258,7 +273,7 @@ const FileStore = ({ email }) => {
       isFolder: newItemType === "folder",
       parent: newItemParentId,
       language: selectedLanguage,
-      content: newItemType === "file" ? "hi" : null, // Set content to null for folders
+      content: newItemType === "file" ?  languageversion[selectedLanguage].default: null, // Set content to null for folders
       owner: userId,
     };
 
@@ -318,13 +333,7 @@ const FileStore = ({ email }) => {
 
  
 
-  if (loading) return <div className="text-center text-xl">Loading...</div>;
-
-  if (!fileStructure) {
-    return (
-      <div className="text-center text-xl">No file structure available.</div>
-    );
-  }
+ 
 
   return (
     <div className="container mx-auto p-4 bg-gray-800">
@@ -398,6 +407,12 @@ const FileStore = ({ email }) => {
         </div>
       )}
       <div className="text-3xl font-bold mb-4 text-white">File Store</div>
+      {!fileStructure
+      &&
+        <Spinner animation="border" role="status" variant="primary">
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+      }
       {fileStructure && rootId && defaultId && (
         <TreeNode
           node={fileStructure}

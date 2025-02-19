@@ -162,11 +162,11 @@ const TreeNode = ({
     openfile,
     setOpenFile,
     url,
+    openname,
+    setOpenname
   } = useAuth();
 
-  useEffect(() => {
-    if (!openfile) setOpenFile(defaultId);
-  });
+  
 
   const buildTree = (data) => {
     const map = new Map();
@@ -208,7 +208,7 @@ const TreeNode = ({
       return newExpandedState;
     });
   };
-
+ 
   const handleRename = async () => {
     setRefreshTrigger((prev) => !prev);
 
@@ -219,11 +219,15 @@ const TreeNode = ({
         parent: node.parent,
         language: selectedLanguage,
       });
-
-      toast.success("File renamed successfully!");
-      if (openfile === node._id) {
-        setOpenFile(node._id);
+      if(openfile==node._id)
+      { 
+        setOpenname(name);
       }
+      const response = await axios.get(`${url}/getFileStructure`, {
+        params: { userId },
+      });
+      setFileStructure(buildTree(response.data));
+      toast.success("File renamed successfully!");
       setShowEditPopup(false);
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -414,7 +418,6 @@ const TreeNode = ({
           </div>
         </div>
       )}
-
       {showDeletePopup && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-4 rounded shadow-lg">

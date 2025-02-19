@@ -35,7 +35,8 @@ const Navbar = () => {
   const { userLoggedIn, setuserLoggedIn } = useAuth();
 
   return (
-    <div className="bg-gradient-to-r from-[#33006F] to-[#800080] text-white shadow-md h-[10vh] ">
+    <div className="bg-gradient-to-r from-[#33006F] to-[#800080] text-white shadow-md h-[10vh]  md:overflow-y-auto">
+
     <div className="container mx-auto my-auto px-2 py-4 flex flex-wrap justify-between items-center">
       <nav className="text-3xl font-bold">CODE IDE</nav>
       <div className="flex flex-wrap items-center gap-2">

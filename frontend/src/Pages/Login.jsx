@@ -7,9 +7,7 @@ import Navbar from "../Components/NavBar.jsx";
 import wel_come_back from "../assets/wel_come_back.png";
 import axios from "axios";
 import { useAuth } from "../Context/AuthContext";
-import { useGoogleLogin } from '@react-oauth/google';
-  
-
+import { useGoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,42 +16,12 @@ const Login = () => {
     password: "",
   });
 
-  const redirectUri =
-  process.env.NODE_ENV === "production"
-    ? "https://code-ide-frontend.onrender.com"
-    : "http://localhost:5173";
+     
 
-const googleLogin = useGoogleLogin({
-  clientId: import.meta.env.VITE_GOOGLE_AUTH_API_KEY,
-  flow: "code",
-  redirect_uri: redirectUri, 
-  
-  onSuccess: async (response) => {
-    console.log(import.meta.env.VITE_GOOGLE_AUTH_API_KEY);
-    try {
-      const res = await axios.post(`http://localhost:3001/googleLogin`, { code: response.code }, { headers: { 'Content-Type': 'application/json' } });
+      
 
-      if (res.data.message === "Success") {
-        toast.success("Google Login Successful!");
-        setuserLoggedIn(true);
-        navigate("/loggeduser", { state: { email: res.data.user.email } });
-      } else {
-        toast.error("Google Login Failed");
-      }
-    } catch (error) {
-      toast.error("Google Login Error");
-    }
-  },
-  onError: () => {
-    toast.error("Google Login Failed");
-  },
-});
-  
-  
- 
-
-
-  const { url,userLoggedIn, setuserLoggedIn ,setEmail} = useAuth();
+  const { url, userLoggedIn, setuserLoggedIn, setEmail } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(
     localStorage.getItem("email") ? true : false
@@ -66,10 +34,7 @@ const googleLogin = useGoogleLogin({
     }));
   };
 
-  useEffect(()=>{
-    console.log("hi");
-    console.log(url);
-  },[]);
+  
   useEffect(() => {
     if (localStorage.getItem("email")) {
       setFormData((prev) => ({
@@ -79,21 +44,63 @@ const googleLogin = useGoogleLogin({
     }
   }, []);
 
+
+  const responseGoogle = async (authResult) => {
+        
+    if (authResult["code"]) {
+      try {
+        const { code } = authResult;
+        console.log(code);
+        const { data } = await axios.post(`${url}/googleLogin`, { code });
+        const { email, name, image, token } = data;
+
+        setEmail(email);
+        console.log(token);
+        if (token) {
+          localStorage.setItem("token", token);
+          toast.success("Welcome back");
+          setuserLoggedIn(true);
+          navigate("/loggeduser", { state: { email:email} });
+          if (rememberMe) {
+            localStorage.setItem("email", email);
+          } else {
+            localStorage.removeItem("email");
+          }
+        } else {
+          toast.error("Error during login.");
+        }
+
+        setTimeout(() => {
+          setIsLoggingIn(false);
+        }, 2000);
+      } catch (error) {
+        console.log(error);
+        toast.error("Error in Google Login");
+      }
+    } else {
+      toast.error("Error in Google Login");
+    }
+  };
+  const googleLogin = useGoogleLogin({
+    onSuccess: responseGoogle,
+    onError: responseGoogle,
+    flow: "auth-code",
+  });
+
   const submitHandler = async (event) => {
     event.preventDefault();
-    
-    console.log("clicked")
+    setIsLoggingIn(true);
     try {
       const result = await axios.post(`${url}/login`, {
         email: formData.email,
         password: formData.password,
       });
       console.log(result.data);
-      setEmail((email)=>formData.email);
+      setEmail((email) => formData.email);
       if (result.data == "Success") {
         toast.success("Welcome back");
         setuserLoggedIn(!userLoggedIn);
-        console.log(userLoggedIn);
+
         navigate("/loggeduser", { state: { email: formData.email } });
         if (rememberMe) {
           localStorage.setItem("email", formData.email);
@@ -103,6 +110,11 @@ const googleLogin = useGoogleLogin({
       } else {
         toast.error(result.data);
       }
+
+
+      setTimeout(() => {
+        setIsLoggingIn(false);
+      }, 2000);
     } catch (err) {
       if (err.response) {
         toast.error(err.response.data.message || "Server error occurred");
@@ -114,7 +126,7 @@ const googleLogin = useGoogleLogin({
 
   return (
     <>
-      {userLoggedIn && <Navigate to={"/loggeduser"} replace={true}  />}
+      {userLoggedIn && <Navigate to={"/loggeduser"} replace={true} />}
       <div className="flex flex-col bg-[#E6E6FA]">
         <Navbar className="w-full" />
         <div className="flex flex-col md:flex-row items-center justify-center min-h-screen bg-[#E6E6FA] animate-fade-in">
@@ -132,7 +144,7 @@ const googleLogin = useGoogleLogin({
                   value={formData.email}
                   placeholder="Enter email address"
                   onChange={changeHandler}
-                  autoComplete="off" 
+                  autoComplete="off"
                   className="w-full px-4 py-2 border border-[#D8C4B6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#720e9e] transition-transform duration-300 transform focus:scale-105"
                 />
               </div>
@@ -160,29 +172,32 @@ const googleLogin = useGoogleLogin({
                 </div>
               </div>
 
-               <div className="flex justify-between">
+              <div className="flex justify-between">
+                <label className="flex items-center text-[#33006F] mt-4">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="mr-2"
+                  />
+                  Remember Me
+                </label>
 
-              <label className="flex items-center text-[#33006F] mt-4">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="mr-2"
-                />
-                Remember Me
-              </label>
-
-              <button className="flex items-center text-[#33006F] mt-4 hover:underline" onClick={()=>navigate("/forgotpassword")}>
-                Forgot password?{" "}
-              </button>
-               </div>
+                <button
+                  className="flex items-center text-[#33006F] mt-4 hover:underline"
+                  onClick={() => navigate("/forgotpassword")}
+                >
+                  Forgot password?{" "}
+                </button>
+              </div>
 
               {errorMessage && <p className="text-red-500">{errorMessage}</p>}
               <button
                 type="submit"
+                disabled={isLoggingIn}
                 className="w-full py-2 px-4 bg-[#33006F] text-white rounded-lg hover:scale-105 hover:bg-[#3E5879] transition-transform duration-200 focus:outline-none mt-4"
               >
-                Log in
+                 {isLoggingIn ? "Logging in..." : "Log in"}
               </button>
 
               <p className="mt-4 text-sm text-center text-[#33006F]">
@@ -194,7 +209,11 @@ const googleLogin = useGoogleLogin({
                   Sign Up
                 </Link>
               </p>
-              <button type="button" onClick={() => googleLogin()} className="w-full py-2 bg-red-500 text-white">
+              <button
+                type="button"
+                onClick={() => googleLogin()}
+                className="w-full py-2 bg-red-500 text-white"
+              >
                 Sign in with Google
               </button>
             </form>

@@ -3,8 +3,8 @@ const UserFile = require("../Models/UserFile");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
+//const { OAuth2Client } = require('google-auth-library');
 const { google } = require("googleapis");
-
 
 const defaultFileStructure = {
   name: "Root",
@@ -20,54 +20,51 @@ const defaultFileStructure = {
 };
 
 
-const REDIRECT_URI =
-  process.env.NODE_ENV === "production"
-    ? "https://code-ide-frontend.onrender.com"
-    : "http://localhost:5173";
 
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI
+
+GOOGLE_CLIENT_ID=process.env.GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=process.env.GOOGLE_CLIENT_SECRET
+
+const OAuth2Client = new google.auth.OAuth2(
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  "http://localhost:5173"
 );
 
-
-exports.oauth2Client = oauth2Client;
-
 const googleLogin = async (req, res) => {
+  const { code } = req.body;
+
   try {
-    const { code } = req.body; 
-    if (!code) {
-      console.error("Error: Code not received from frontend");
-      return res.status(400).json({ message: "Code is required" });
-    }
+    console.log("Google Client ID:", process.env.GOOGLE_CLIENT_ID);
+    console.log("Google Client Secret:", process.env.GOOGLE_CLIENT_SECRET);
+    console.log("Authorization Code Received:", code);
 
-    console.log("Received code from frontend:", code); 
-    
-      console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
-      console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET);
-  
-      const { tokens } = await oauth2Client.getToken(code);
-  
-      console.log("Google OAuth Tokens:", tokens);
-  
-    oauth2Client.setCredentials(tokens);
-    console.log("88888")
-    // Fetch user details from Google
-    const userRes = await axios.get("https://www.googleapis.com/oauth2/v1/userinfo?alt=json", {
-      headers: {
-        Authorization: `Bearer ${tokens.access_token}`,
-      },
-    });
-    
+    const googleResponse = await OAuth2Client.getToken(code);
+    console.log("Google Token Response:", googleResponse);
 
-    console.log("Google User Data:", userRes.data); // Debug log
+    OAuth2Client.setCredentials(googleResponse.tokens);
 
-    const { email, name, picture } = userRes.data;
+    // Use axios instead of fetch
+    const userResponse = await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleResponse.tokens.access_token}`
+    );
+
+    console.log("User Info:", userResponse.data);
+
+    const { email, name, picture } = userResponse.data;
+
     let user = await CoderModel.findOne({ email });
+    let token;
 
-    // Create a new user if not found
-    if (!user) {
+    if (user) {
+      // If user exists, generate a JWT token
+      token = jwt.sign(
+        { username: name, email, password: name },
+         "secret",
+        { expiresIn: "12h" }
+      );
+    } else {
+      // If user doesn't exist, create a new one
       user = await CoderModel.create({ username: name, email, password: name });
 
       const rootFolder = new UserFile({
@@ -92,30 +89,24 @@ const googleLogin = async (req, res) => {
 
       rootFolder.children.push(defaultFile._id);
       await rootFolder.save();
+
+      // Generate token after creating a new user
+      token = jwt.sign(
+        { username: name, email, password: name },
+         "secret",
+        { expiresIn: "12h" }
+      );
     }
 
-    // Generate JWT token
-    const { _id } = user;
-    const token = jwt.sign({ _id, email }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_TIMEOUT,
-    });
-
-    console.log("Generated JWT Token:", token); // Debug log
-
-    return res.status(200).json({
-      message: "Success",
-      token,
-      user,
-    });
+    return res.status(200).json({ email, name, image: picture, token });
   } catch (error) {
-    console.error("Google Login Error:", error?.response?.data || error);
-    res.status(500).json({
+    console.error("Google Login Error:", error.message || error);
+    return res.status(500).json({
       message: "Internal Server Error",
-      error: error?.message || "Unknown error",
+      error: error.message || "Unknown error",
     });
   }
 };
-
 
 
 
@@ -141,7 +132,7 @@ const register = async (req, res) => {
       name: defaultFileStructure.name,
       isFolder: defaultFileStructure.isFolder,
       owner: newUser._id,
-      parent: null, // Root folder has no parent
+      parent: null, 
     });
 
     await rootFolder.save();

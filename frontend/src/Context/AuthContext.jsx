@@ -7,8 +7,12 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
 
   
-   const url=`http://localhost:3001`;
-  //const url=`https://code-ide-backend-5yjb.onrender.com`;
+  // const url =
+  // import.meta.env.MODE === "production"
+  //   ? import.meta.env.VITE_API_URL_PROD
+  //   : import.meta.env.VITE_API_URL_DEV;
+
+  const url="http://localhost:3001";
 
   const [userLoggedIn, setuserLoggedIn] = useState(() => {
     const savedUser = localStorage.getItem("userLoggedIn");
@@ -24,6 +28,9 @@ export const AuthProvider = ({ children }) => {
     const [refreshTrigger, setRefreshTrigger] = useState(false);
     const [openfile, setOpenFile] = useState(() => {
       return localStorage.getItem("openfile") || null; // Use stored value or default
+    });
+    const [openname, setOpenname] = useState(() => {
+      return localStorage.getItem("openname") || "defaultFile"; // Use stored value or default
     });
   // Persist `userLoggedIn`, `email`, and `otp` to localStorage on change
   useEffect(() => {
@@ -42,9 +49,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("openfile", openfile);
   })
 
+
+  useEffect(()=>{
+    localStorage.setItem("openname", openname);
+  })
+
   return (
     <AuthContext.Provider
-      value={{ url,userLoggedIn, setuserLoggedIn, email, setEmail, otp, setOtp ,rootId, setrootId,refreshTrigger, setRefreshTrigger,defaultId, setdefaultId,openfile,setOpenFile}}
+      value={{openname, setOpenname,url,userLoggedIn, setuserLoggedIn, email, setEmail, otp, setOtp ,rootId, setrootId,refreshTrigger, setRefreshTrigger,defaultId, setdefaultId,openfile,setOpenFile}}
     >
       {children}
     </AuthContext.Provider>

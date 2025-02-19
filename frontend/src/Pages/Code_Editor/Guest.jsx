@@ -9,40 +9,68 @@ import { FaRegPlayCircle } from "react-icons/fa";
 import { BiSave } from "react-icons/bi";
 import { toast } from "react-toastify";
 import * as monaco from "monaco-editor";
-import { THEMES, registerThemes } from "./themes";
 import { CiImport, CiExport } from "react-icons/ci";
 import { TbTextWrapColumn } from "react-icons/tb";
 import { IoTerminalOutline } from "react-icons/io5";
+import Spinner from "react-bootstrap/Spinner";
+import { useRef } from "react";
+
 
 const Guest = ({ id, mainLanguage }) => {
+  const { userLoggedIn, url, email, openname, setOpenname } = useAuth();
+  const storageKey = userLoggedIn ? `loggedUser_${email}` : "explore_output";
   const [showChat, setShowChat] = useState(
     () => localStorage.getItem("showChat") === "true"
   );
 
-  const [content, setContent] = useState(()=>{
-    return localStorage.getItem("editorContent") || "console.log('Hello world');";
-  });
+  
+
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [name, setName] = useState("defaultFile");
-  const [language, setLanguage] = useState(()=>{
-    return localStorage.getItem("selectedLanguage") || mainLanguage;
+  const [isRunning, setIsRunning] = useState(false);
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem("language") || "javascript";
+    
   });
-  const [theme, setTheme] = useState(()=>{
+  const [theme, setTheme] = useState(() => {
     return localStorage.getItem("selectedTheme") || "vs-dark";
   });
-  const [input, setInput] = useState(
-    "Write your input here or you can drop file here"
-  );
-  const [output, setOutput] = useState("This is your output text.");
+  const [input, setInput] = useState(() => {
+    return (
+      localStorage.getItem("input") ||
+      "Write your input here or you can drop file here"
+    );
+  });
+
+  const [output, setOutput] = useState(() => {
+    const storedData = localStorage.getItem(storageKey);
+    try {
+      return storedData
+        ? JSON.parse(storedData).output
+        : "This is your output text.";
+    } catch (error) {
+      return "This is your output text."; 
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify({ output }));
+  }, [output]);
+
   const [dragOver, setDragOver] = useState(false);
-  const [fullScreen, setFullscreen] = useState(false);
-  const [wrap, setWrap] = useState(false);
-  const { userLoggedIn, url } = useAuth();
+  const [fullScreen, setFullscreen] = useState(() => {
+    return localStorage.getItem("fullScreen")
+      ? JSON.parse(localStorage.getItem("fullScreen"))
+      : false;
+  });
+  const [wrap, setWrap] = useState(() => {
+    return localStorage.getItem("wrap")
+      ? JSON.parse(localStorage.getItem("wrap"))
+      : false;
+  });
 
   // Store `id` in localStorage when it changes
- 
-
   const languageversion = {
     javascript: {
       version: "18.15.0",
@@ -141,38 +169,37 @@ const Guest = ({ id, mainLanguage }) => {
   };
 
 
-  useEffect(() => {
-    if (!userLoggedIn) {
-      localStorage.setItem("editorContent", content);
-    }
-  }, [content, userLoggedIn]);
+  const [content, setContent] = useState(() => {
+    const savedLanguage = localStorage.getItem("language") || "javascript";
+    return localStorage.getItem(`content-${savedLanguage}`) || getDefaultContent(savedLanguage);
+  });
+
+  
+
 
   useEffect(() => {
-    
-
     if (!id) {
       return;
     }
+    const fetchFileContent = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await axios.get(`${url}/getContent`, {
+          params: { id },
+        });
+        console.log(res.data);
+        setOpenname(res.data.name || "");
+        setContent(res.data.content || ""); // Default to an empty string if content is undefined
+      } catch (err) {
+        setError("Failed to fetch file content.");
+        console.error("Error fetching file content:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     if (userLoggedIn) {
-      const fetchFileContent = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-          const res = await axios.get(`${url}/getContent`, {
-            params: { id },
-          });
-          console.log(res.data);
-          setName(res.data.name || "");
-          setContent(res.data.content || ""); // Default to an empty string if content is undefined
-        } catch (err) {
-          setError("Failed to fetch file content.");
-          console.error("Error fetching file content:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-
       fetchFileContent();
     } else {
     }
@@ -220,7 +247,6 @@ const Guest = ({ id, mainLanguage }) => {
   };
 
   const handleDownload = () => {
-    
     const blob = new Blob([output], { type: "text/plain;charset=utf-8" });
 
     // Create a link element
@@ -254,48 +280,29 @@ const Guest = ({ id, mainLanguage }) => {
     }
   };
 
-  const handleLanguageChange = (event) => {
-    setContent(languageversion[event.target.value].default);
-    setLanguage(event.target.value);
-    console.log(userLoggedIn);
-    console.log(event.target.value);
-    if (!userLoggedIn) {
-      localStorage.setItem("selectedLanguage",event.target.value );
-    }
-  };
 
-  useEffect(() => {
-    localStorage.setItem('content', content);
-    localStorage.setItem('language', language);
-  }, [content, language]);
   
-  useEffect(() => {
-    const savedContent = localStorage.getItem('content');
-    const savedLanguage = localStorage.getItem('language');
+ 
   
-    if (savedContent && savedLanguage) {
-      setContent(savedContent);
-      setLanguage(savedLanguage);
-    }
-  }, []);
+
+ 
   
+
   useEffect(() => {
     // Save id to localStorage when it changes
     if (id) {
-      localStorage.setItem('id', id);
+      localStorage.setItem("id", id);
     }
   }, [id]);
-  
+
   useEffect(() => {
     // If `id` remains the same, set language to `mainLanguage`
-    const currId = localStorage.getItem('id');
+    const currId = localStorage.getItem("id");
     if (currId === id && mainLanguage) {
       setLanguage(mainLanguage);
     }
   }, [id, mainLanguage]);
 
-  
-  
   useEffect(() => {
     localStorage.setItem("showChat", showChat);
   }, [showChat]);
@@ -308,6 +315,12 @@ const Guest = ({ id, mainLanguage }) => {
       reader.readAsText(file);
     }
   };
+  useEffect(() => {
+    setOpenname(openname);
+  }, [openname]);
+
+
+
   // Function to handle file export
   const handleCodeFileDownload = () => {
     let extension;
@@ -361,13 +374,15 @@ const Guest = ({ id, mainLanguage }) => {
         extension = "txt";
     }
 
-    // Use the provided name or default to 'default'
-    const fileName = name ? `${name}.${extension}` : `default.${extension}`;
+    // Use the provided openname or default to 'default'
+    const fileName = openname
+      ? `${openname}.${extension}`
+      : `default.${extension}`;
 
     const blob = new Blob([content], { type: "text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = fileName; // Set the file name with the appropriate extension
+    a.download = fileName; // Set the file openname with the appropriate extension
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -375,6 +390,7 @@ const Guest = ({ id, mainLanguage }) => {
 
   const runcode = async () => {
     try {
+      setIsRunning(true);
       console.log(language);
       console.log(languageversion[language]?.version);
       console.log(content);
@@ -400,118 +416,212 @@ const Guest = ({ id, mainLanguage }) => {
       } else {
         setOutput(data.output);
       }
+
+      setIsRunning(false);
     } catch (error) {
       setOutput("Error executing code.");
     }
   };
+ 
 
-
+  const getDefaultContent = (lang) => {
+    return languageversion[lang]?.default || "";
+  };
+  
+  const handleLanguageChange = (event) => {
+    const newLanguage = event.target.value;
+    setLanguage(newLanguage);
+  
+    if (!userLoggedIn) {
+      // Store current content for previous language
+      localStorage.setItem(`content-${language}`, content);
+    } else {
+      // Store content based on id and language
+      const fileKey = `${id}-${language}`;
+      localStorage.setItem(`content-${fileKey}`, content);
+    }
+  };
+  
+  // Effect to load content when language changes
   useEffect(() => {
     if (!userLoggedIn) {
-      localStorage.setItem("selectedLanguage", language);
+      const savedContent = localStorage.getItem(`content-${language}`);
+      setContent(savedContent || getDefaultContent(language));
+    } else {
+      const fileKey = `${id}-${language}`;
+      const savedContent = localStorage.getItem(`content-${fileKey}`);
+      setContent(savedContent || getDefaultContent(language));
     }
-  }, [language, userLoggedIn]);
+  }, [language, userLoggedIn, id]);
+  
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem("language") || "javascript";
+    setLanguage(savedLanguage);
+  
+    if (!userLoggedIn) {
+      const savedContent = localStorage.getItem(`content-${savedLanguage}`);
+      setContent(savedContent || getDefaultContent(savedLanguage));
+    } else {
+      const fileKey = `${id}-${savedLanguage}`;
+      const savedContent = localStorage.getItem(`content-${fileKey}`);
+      setContent(savedContent || getDefaultContent(savedLanguage));
+    }
+  }, [userLoggedIn, id]);
+  
+  const handleEditorChange = (newValue) => {
+    setContent(newValue);
+  
+    if (!userLoggedIn) {
+      localStorage.setItem(`content-${language}`, newValue);
+    } else {
+      const fileKey = `${id}-${language}`;
+      localStorage.setItem(`content-${fileKey}`, newValue);
+    }
+  };
+  
+  
+  
 
+  useEffect(() => {
+    localStorage.setItem("wrap", JSON.stringify(wrap));
+  }, [wrap]);
 
   useEffect(() => {
     if (!userLoggedIn) {
       localStorage.setItem("selectedTheme", theme);
     }
   }, [theme, userLoggedIn]);
+  useEffect(() => {
+    localStorage.setItem("fullScreen", JSON.stringify(fullScreen));
+  }, [fullScreen]);
+
+  useEffect(() => {
+    localStorage.setItem("input", input);
+  }, [input]);
+
+  useEffect(() => {
+    const storedData = localStorage.getItem(storageKey);
+    if (storedData) {
+      setOutput(JSON.parse(storedData).output);
+    }
+  }, [userLoggedIn, email]);
 
   return (
     <div
-      className={`grid grid-rows-[auto_auto_1fr_auto] grid-cols-1 w-full box-border bg-[#E6E6FA] max-h-[70%]`}
+      className={`grid grid-rows-[auto_auto_1fr_auto] grid-cols-1 box-border bg-[#E6E6FA] max-h-[70%]`}
     >
+      {/*grid grid-rows-[auto_1fr_auto] min-h-screen box-border bg-[#E6E6FA]*/}
+      {/*grid grid-rows-[auto_auto_1fr_auto] grid-cols-1  box-border bg-[#E6E6FA] max-h-[70%]*/}
       {!userLoggedIn && (
-        <div className="top-0 right-0 ">
+        <div className="top-0 right-0  mb-2">
           <Navbar />
         </div>
       )}
+<div className="flex flex-wrap items-center justify-between px-6 bg-gray-900 shadow-md gap-4">
+  {/* Left Section - User Name & Language Selector */}
+  <div className={`flex items-center gap-4 rounded-lg ${userLoggedIn ? "p-2" : "p-3"}`}>
+    {/* Terminal Icon */}
+    <div
+      onClick={() => {
+        setFullscreen(!fullScreen);
+      }}
+      className={`text-white border-gray-700 bg-gray-800 focus:border-white focus:outline-none ${
+        userLoggedIn ? "text-lg md:text-xl" : "text-xl md:text-2xl"
+      }`}
+    >
+      <IoTerminalOutline className={`${userLoggedIn ? "text-2xl" : "text-4xl"}`} />
+    </div>
 
-      <div className="flex flex-wrap items-center justify-between mt-5 px-6 bg-gray-900 shadow-md gap-4 ">
-        {/* Left Section - User Name & Language Selector */}
-        <div className="flex items-center p-3 gap-4 rounded-lg">
-          {/* Terminal Icon */}
-          <div
-            onClick={() => {
-              setFullscreen(!fullScreen);
-            }}
-            className="text-xl md:text-2xl text-white border-gray-700 bg-gray-800 focus:border-white focus:outline-none"
-          >
-            <IoTerminalOutline className="text-4xl" />
-          </div>
+    {/* User Name Display */}
+    {!openname && <Spinner animation="border" variant="secondary" size="sm" />}
+    {userLoggedIn && (
+      <span className={`font-semibold bg-gray-800 text-white ${userLoggedIn ? "text-xs md:text-sm" : "text-sm md:text-base lg:text-lg"}`}>
+        {openname}
+      </span>
+    )}
 
-          {/* User Name Display */}
-          {userLoggedIn && (
-            <span className="text-sm md:text-base lg:text-lg font-semibold bg-gray-800 text-white">
-              {name}
-            </span>
-          )}
+    {/* Language Selection Dropdown */}
+    <select
+      value={language}
+      onChange={handleLanguageChange}
+      className={`border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none ${
+        userLoggedIn ? "text-xs p-1" : "md:p-2"
+      }`}
+    >
+      {Object.entries(languageversion).map(([key, { version }]) => (
+        <option key={key} value={key}>
+          {key.charAt(0).toUpperCase() + key.slice(1)} ({version})
+        </option>
+      ))}
+    </select>
+  </div>
 
-          {/* Language Selection Dropdown */}
-          <select
-            value={language}
-            onChange={handleLanguageChange}
-            className=" md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
-          >
-            {Object.entries(languageversion).map(([key, { version }]) => (
-              <option key={key} value={key}>
-                {key.charAt(0).toUpperCase() + key.slice(1)} ({version})
-              </option>
-            ))}
-          </select>
-        </div>
+  {/* Center Section - Run & Save Buttons */}
+  <div className="flex flex-wrap items-center gap-4">
+    <button
+      disabled={isRunning}
+      onClick={runcode}
+      className={`flex items-center gap-2 bg-gray-700 text-white shadow-md hover:bg-blue-600 transition rounded-3xl ${
+        userLoggedIn ? "px-3 py-1 text-xs sm:px-4 sm:py-1 sm:text-sm" : "px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg"
+      }`}
+    >
+      {isRunning ? (
+        <>
+          <Spinner animation="border" variant="secondary" size="sm" />
+          <span className="text-xs">Running</span>
+        </>
+      ) : (
+        <>
+          <FaRegPlayCircle className={`${userLoggedIn ? "text-base" : "text-lg sm:text-xl"}`} />
+          <span>Run</span>
+        </>
+      )}
+    </button>
 
-        {/* Center Section - Run & Save Buttons */}
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            onClick={runcode}
-            className="flex items-center gap-2  bg-gray-700 text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-3xl shadow-md hover:bg-blue-600 transition"
-          >
-            <FaRegPlayCircle className="text-lg sm:text-xl" />
-            <span>Run</span>
-          </button>
+    {userLoggedIn && (
+      <button
+        onClick={handleSave}
+        className={`flex items-center gap-2 bg-gray-700 text-white shadow-md hover:bg-blue-600 transition rounded-3xl ${
+          userLoggedIn ? "px-3 py-1 text-xs sm:px-4 sm:py-1 sm:text-sm" : "px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg"
+        }`}
+      >
+        <BiSave className={`${userLoggedIn ? "text-base" : "text-lg sm:text-xl"}`} />
+        <span>Save</span>
+      </button>
+    )}
+  </div>
 
-          {userLoggedIn && (
-            <button
-              onClick={handleSave}
-              className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 text-sm sm:text-base md:text-lg rounded-lg shadow-md hover:bg-blue-600 transition"
-            >
-              <BiSave className="text-lg sm:text-xl" />
-              <span>Save</span>
-            </button>
-          )}
-        </div>
+  {/* Right Section - Theme & Enable Wrapping */}
+  <div className="flex flex-wrap items-center gap-4">
+    {/* Theme Dropdown */}
+    <select
+      className={`border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none ${
+        userLoggedIn ? "text-xs p-1" : "md:p-2"
+      }`}
+      value={theme}
+      onChange={(e) => {
+        setTheme(e.target.value);
+        localStorage.setItem("selectedTheme", e.target.value);
+      }}
+    >
+      <option value="vs-dark">Dark Theme</option>
+      <option value="vs-light">Light Theme</option>
+      <option value="hc-black">High Contrast</option>
+    </select>
 
-        {/* Right Section - Theme & Enable Wrapping */}
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Theme Dropdown */}
+    {/* Enable Wrapping Button */}
+    <button
+      onClick={() => setWrap(!wrap)}
+      className={`flex items-center gap-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none ${
+        userLoggedIn ? "text-xs p-1" : "md:p-2"
+      }`}
+    >
+      <TbTextWrapColumn className={`${userLoggedIn ? "text-xm" : "text-lg sm:text-xl"}`} />
+      {!wrap ? <span>Enable Wrapping</span> : <span>Disable Wrapping</span>}
+    </button>
+  </div>
+</div>
 
-          <select
-            className="md:p-2 border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
-            value={theme}
-            onChange={(e) => {
-              setTheme(e.target.value);
-              localStorage.setItem("selectedTheme", e.target.value);
-            }}
-          >
-            <option value="vs-dark">Dark Theme</option>
-            <option value="vs-light">Light Theme</option>
-            <option value="hc-black">High Contrast</option>
-          </select>
-
-          {/* Enable Wrapping Button */}
-          <button
-            onClick={() => setWrap(!wrap)}
-            className="flex items-center gap-2 p-2  sm:text-base md:text-lg border-2 border-gray-700 rounded-lg bg-gray-800 text-white focus:border-white focus:outline-none"
-          >
-            <TbTextWrapColumn className="text-lg sm:text-xl " />
-            {!wrap && <span>Enable Wrapping</span>}
-            {wrap && <span>Disable Wrapping</span>}
-          </button>
-        </div>
-      </div>
 
       {/* Upper Section - Code Editor (75%) */}
       <div className={`p-2 relative ${fullScreen ? "h-[80vh]" : "h-[55vh]"}`}>
@@ -542,7 +652,7 @@ const Guest = ({ id, mainLanguage }) => {
           language={language}
           theme={theme}
           value={content}
-          onChange={(newValue) => setContent(newValue)}
+          onChange={handleEditorChange}
           options={{
             fontSize: 14,
             fontFamily: "Jetbrains-Mono",
@@ -564,10 +674,10 @@ const Guest = ({ id, mainLanguage }) => {
         />
       </div>
       {!fullScreen && (
-        <div className="grid grid-cols-2 h-[25vh] box-border gap-2 bg-gray-800 border-gray-700 ">
+        <div className="grid grid-cols-2 box-border gap-2 h-[25vh] bg-gray-800 border-gray-700  ">
           {/* Input Section */}
           <div
-            className="flex flex-col p-4  border-4 border-gray-700"
+            className="flex flex-col p-2  border-4 border-gray-700"
             style={{ scrollbarWidth: "none", overflow: "auto" }}
           >
             {/* Header */}
@@ -607,7 +717,7 @@ const Guest = ({ id, mainLanguage }) => {
 
           {/* Output Section */}
           <div
-            className="flex flex-col p-4  border-4 border-gray-700"
+            className="flex flex-col p-2  border-4 border-gray-700"
             style={{ scrollbarWidth: "none", overflow: "auto" }}
           >
             {/* Header */}

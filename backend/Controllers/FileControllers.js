@@ -205,7 +205,7 @@ const getLanguage = async (req, res) => {
       return res.status(404).json({ error: "File not found" });
     }
     console.log(file.language);
-    res.json({ language: file.language});
+    res.json({ language: file.language, name: file.name});
   } catch (error) {
     console.error("Error fetching file:", error);
     res.status(500).json({ error: "Server error" });
